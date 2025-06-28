@@ -1,0 +1,49 @@
+# .cursorrules
+
+# 1. 目录结构规范
+backend/: Spring Boot后端代码，所有Java代码、配置、资源文件均在此目录下
+front/: React前端代码，所有页面、组件、静态资源均在此目录下
+docs/: 项目文档、接口文档、数据库设计等
+
+# 2. 命名规范
+- Java类、接口、枚举：大驼峰（如 FundPortfolioController）
+- Java包名：全小写，分层（如 com.neulab.fund.controller）
+- 数据库表名：下划线分隔小写（如 fund_portfolio）
+- 前端组件：大驼峰（如 FundPortfolioList）
+- 变量、方法：小驼峰（如 getFundList）
+
+# 3. 注释风格
+- Java：使用Javadoc风格注释类、方法、重要字段
+- TypeScript/JS：使用/** ... */风格注释函数、组件、接口
+- 重要业务逻辑、复杂SQL需有中文注释
+
+# 4. 接口风格
+- RESTful风格，路径全部小写，使用复数（如 /api/funds）
+- GET用于查询，POST用于新增，PUT用于更新，DELETE用于删除
+- 返回统一响应结构（如 { code, message, data }）
+- 所有接口路径以/api开头
+
+# 5. 前后端分层
+- 后端采用Controller-Service-Repository分层
+- Controller只负责接收请求和返回结果
+- Service负责业务逻辑
+- Repository/Mapper负责数据库操作
+- 前端按 pages/components/api/store/router/utils 分层
+
+# 6. 数据库设计
+- 所有表必须有主键id，类型为bigint自增
+- 字段名全小写，单词间下划线分隔
+- 重要表需有created_at、updated_at时间戳字段
+- 外键字段以 _id 结尾
+
+# 7. 代码风格
+- Java/TypeScript均采用4空格缩进
+- 统一使用英文标点
+- 变量、方法、类名语义清晰
+- 前端接口请求封装在src/api目录
+- 前端页面放在src/pages，通用组件放在src/components
+
+# 8. 其他
+- 生成代码时优先遵循上述规范
+- 生成的接口、实体、表结构、注释需与docs/01_主要接口与数据库设计.md保持一致
+- 生成的目录结构、命名、注释风格需与项目文档.md保持一致 
