@@ -19,6 +19,7 @@ import TradeOrderList from '../pages/trade/TradeOrderList';
 import TradeRecordList from '../pages/trade/TradeRecordList';
 import UserPositionList from '../pages/trade/UserPositionList';
 import CapitalFlowList from '../pages/trade/CapitalFlowList';
+import ProductAdd from '../pages/product/ProductAdd';
 
 // 路由配置
 export const router = createBrowserRouter([
@@ -28,109 +29,58 @@ export const router = createBrowserRouter([
     children: [
       {
         index: true,
-        element: <Navigate to="/dashboard" replace />,
-      },
-      {
-        path: 'dashboard',
         element: <Dashboard />,
       },
       // 基金研究子系统
       {
-        path: 'fund',
+        path: 'funds',
         children: [
-          {
-            path: 'list',
-            element: <FundList />,
-          },
-          {
-            path: 'detail/:id',
-            element: <FundDetail />,
-          },
-          {
-            path: 'company',
-            element: <FundCompanyList />,
-          },
-          {
-            path: 'manager',
-            element: <FundManagerList />,
-          },
+          { index: true, element: <FundList /> },
+          { path: ':id', element: <FundDetail /> },
+          { path: 'companies', element: <FundCompanyList /> },
+          { path: 'managers', element: <FundManagerList /> },
         ],
       },
       // 因子管理子系统
       {
-        path: 'factor',
+        path: 'factors',
         children: [
-          {
-            path: 'list',
-            element: <FactorList />,
-          },
-          {
-            path: 'detail/:id',
-            element: <FactorDetail />,
-          },
-          {
-            path: 'tree',
-            element: <FactorTreeList />,
-          },
+          { index: true, element: <FactorList /> },
+          { path: ':id', element: <FactorDetail /> },
+          { path: 'trees', element: <FactorTreeList /> },
         ],
       },
       // 策略管理子系统
       {
-        path: 'strategy',
+        path: 'strategies',
         children: [
-          {
-            path: 'list',
-            element: <StrategyList />,
-          },
-          {
-            path: 'detail/:id',
-            element: <StrategyDetail />,
-          },
-          {
-            path: 'backtest',
-            element: <StrategyBacktestList />,
-          },
+          { index: true, element: <StrategyList /> },
+          { path: ':id', element: <StrategyDetail /> },
+          { path: 'backtests', element: <StrategyBacktestList /> },
         ],
       },
       // 组合产品管理子系统
       {
-        path: 'product',
+        path: 'products',
         children: [
-          {
-            path: 'list',
-            element: <ProductList />,
-          },
-          {
-            path: 'detail/:id',
-            element: <ProductDetail />,
-          },
-          {
-            path: 'review',
-            element: <ProductReviewList />,
-          },
+          { index: true, element: <ProductList /> },
+          { path: ':id', element: <ProductDetail /> },
+          { path: 'reviews', element: <ProductReviewList /> },
         ],
       },
       // 交易管理子系统
       {
-        path: 'trade',
+        path: 'trades',
         children: [
-          {
-            path: 'order',
-            element: <TradeOrderList />,
-          },
-          {
-            path: 'record',
-            element: <TradeRecordList />,
-          },
-          {
-            path: 'position',
-            element: <UserPositionList />,
-          },
-          {
-            path: 'flow',
-            element: <CapitalFlowList />,
-          },
+          { path: 'orders', element: <TradeOrderList /> },
+          { path: 'capital-flows', element: <CapitalFlowList /> },
+          { path: 'records', element: <TradeRecordList /> },
+          { path: 'positions', element: <UserPositionList /> },
         ],
+      },
+      {
+        path: '/product/add',
+        element: <ProductAdd />
       },
     ],
   },

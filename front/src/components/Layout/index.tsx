@@ -1,5 +1,15 @@
 import React, { useState } from 'react';
-import { Layout as AntLayout, Menu, theme, Avatar, Dropdown, Space } from 'antd';
+import { Outlet, Link, useLocation } from 'react-router-dom';
+import {
+  Layout as AntLayout,
+  Menu,
+  Button,
+  Avatar,
+  Dropdown,
+  Space,
+  Typography,
+  theme,
+} from 'antd';
 import {
   DashboardOutlined,
   FundOutlined,
@@ -7,122 +17,122 @@ import {
   SettingOutlined,
   ShoppingOutlined,
   TransactionOutlined,
-  UserOutlined,
-  LogoutOutlined,
   MenuFoldOutlined,
   MenuUnfoldOutlined,
+  UserOutlined,
+  LogoutOutlined,
+  BellOutlined,
 } from '@ant-design/icons';
-import { Outlet, useNavigate, useLocation } from 'react-router-dom';
-import type { MenuProps } from 'antd';
+import './index.css';
 
 const { Header, Sider, Content } = AntLayout;
+const { Title } = Typography;
 
 const Layout: React.FC = () => {
   const [collapsed, setCollapsed] = useState(false);
-  const navigate = useNavigate();
   const location = useLocation();
   const {
     token: { colorBgContainer, borderRadiusLG },
   } = theme.useToken();
 
-  // 菜单项配置
-  const menuItems: MenuProps['items'] = [
+  // 菜单配置
+  const menuItems = [
     {
-      key: '/dashboard',
+      key: '/',
       icon: <DashboardOutlined />,
       label: '仪表盘',
     },
     {
-      key: '/fund',
+      key: 'funds',
       icon: <FundOutlined />,
       label: '基金研究',
       children: [
         {
-          key: '/fund/list',
+          key: '/funds',
           label: '基金列表',
         },
         {
-          key: '/fund/company',
+          key: '/funds/companies',
           label: '基金公司',
         },
         {
-          key: '/fund/manager',
+          key: '/funds/managers',
           label: '基金经理',
         },
       ],
     },
     {
-      key: '/factor',
+      key: 'factors',
       icon: <ExperimentOutlined />,
       label: '因子管理',
       children: [
         {
-          key: '/factor/list',
+          key: '/factors',
           label: '因子列表',
         },
         {
-          key: '/factor/tree',
+          key: '/factors/trees',
           label: '因子树',
         },
       ],
     },
     {
-      key: '/strategy',
+      key: 'strategies',
       icon: <SettingOutlined />,
       label: '策略管理',
       children: [
         {
-          key: '/strategy/list',
+          key: '/strategies',
           label: '策略列表',
         },
         {
-          key: '/strategy/backtest',
+          key: '/strategies/backtests',
           label: '策略回测',
         },
       ],
     },
     {
-      key: '/product',
+      key: 'products',
       icon: <ShoppingOutlined />,
-      label: '产品管理',
+      label: '组合产品',
       children: [
         {
-          key: '/product/list',
+          key: '/products',
           label: '产品列表',
         },
         {
-          key: '/product/review',
+          key: '/products/reviews',
           label: '产品审核',
         },
       ],
     },
     {
-      key: '/trade',
+      key: 'trades',
       icon: <TransactionOutlined />,
       label: '交易管理',
       children: [
         {
-          key: '/trade/order',
-          label: '交易订单',
+          key: '/trades/orders',
+          label: '交易单',
         },
         {
-          key: '/trade/record',
+          key: '/trades/capital-flows',
+          label: '资金流水',
+        },
+        {
+          key: '/trades/records',
           label: '交易记录',
         },
         {
-          key: '/trade/position',
+          key: '/trades/positions',
           label: '用户持仓',
-        },
-        {
-          key: '/trade/flow',
-          label: '资金流水',
         },
       ],
     },
   ];
 
-  // 用户下拉菜单
-  const userMenuItems: MenuProps['items'] = [
+  // 用户菜单
+  const userMenuItems = [
     {
       key: 'profile',
       icon: <UserOutlined />,
@@ -134,7 +144,7 @@ const Layout: React.FC = () => {
       label: '系统设置',
     },
     {
-      type: 'divider',
+      type: 'divider' as const,
     },
     {
       key: 'logout',
@@ -143,122 +153,85 @@ const Layout: React.FC = () => {
     },
   ];
 
-  // 菜单点击处理
-  const handleMenuClick: MenuProps['onClick'] = ({ key }) => {
-    navigate(key);
-  };
-
-  // 用户菜单点击处理
-  const handleUserMenuClick: MenuProps['onClick'] = ({ key }) => {
-    switch (key) {
-      case 'logout':
-        // 处理退出登录
-        localStorage.removeItem('token');
-        navigate('/login');
-        break;
-      default:
-        break;
-    }
-  };
-
   // 获取当前选中的菜单项
   const getSelectedKeys = () => {
     const pathname = location.pathname;
     const keys: string[] = [];
     
-    // 找到匹配的菜单项
-    const findMenuKey = (items: any[], path: string) => {
-      for (const item of items) {
-        if (item.key === path) {
-          keys.push(item.key);
-          return true;
-        }
-        if (item.children) {
-          if (findMenuKey(item.children, path)) {
-            keys.push(item.key);
-            return true;
-          }
-        }
-      }
-      return false;
-    };
-
-    findMenuKey(menuItems || [], pathname);
-    return keys.reverse();
+    // 根据路径匹配菜单项
+    if (pathname === '/') {
+      keys.push('/');
+    } else if (pathname.startsWith('/funds')) {
+      keys.push('funds');
+      keys.push(pathname);
+    } else if (pathname.startsWith('/factors')) {
+      keys.push('factors');
+      keys.push(pathname);
+    } else if (pathname.startsWith('/strategies')) {
+      keys.push('strategies');
+      keys.push(pathname);
+    } else if (pathname.startsWith('/products')) {
+      keys.push('products');
+      keys.push(pathname);
+    } else if (pathname.startsWith('/trades')) {
+      keys.push('trades');
+      keys.push(pathname);
+    }
+    
+    return keys;
   };
 
   return (
     <AntLayout style={{ minHeight: '100vh' }}>
-      <Sider 
-        trigger={null} 
-        collapsible 
-        collapsed={collapsed}
-        width={240}
-        style={{
-          boxShadow: '2px 0 8px rgba(0,0,0,0.1)',
-        }}
-      >
-        <div style={{ 
-          height: 32, 
-          margin: 16, 
-          background: 'rgba(255, 255, 255, 0.2)',
-          borderRadius: 6,
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          color: 'white',
-          fontSize: collapsed ? 12 : 16,
-          fontWeight: 'bold'
-        }}>
-          {collapsed ? 'NFA' : '智能投顾'}
+      <Sider trigger={null} collapsible collapsed={collapsed} theme="dark">
+        <div className="logo">
+          <Title level={4} style={{ color: 'white', margin: 0, textAlign: 'center' }}>
+            {collapsed ? 'NEU' : 'NEU智能投顾'}
+          </Title>
         </div>
         <Menu
           theme="dark"
           mode="inline"
           selectedKeys={getSelectedKeys()}
           items={menuItems}
-          onClick={handleMenuClick}
-          style={{
-            borderRight: 0,
+          onClick={({ key }) => {
+            if (key !== 'funds' && key !== 'factors' && key !== 'strategies' && key !== 'products' && key !== 'trades') {
+              window.location.href = key;
+            }
           }}
         />
       </Sider>
       <AntLayout>
-        <Header style={{ 
-          padding: '0 24px', 
-          background: colorBgContainer,
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
-          zIndex: 1000,
-        }}>
-          <Space>
-            {React.createElement(collapsed ? MenuUnfoldOutlined : MenuFoldOutlined, {
-              className: 'trigger',
-              onClick: () => setCollapsed(!collapsed),
-              style: { fontSize: 18, cursor: 'pointer' }
-            })}
-            <span style={{ fontSize: 18, fontWeight: 'bold', color: '#1890ff' }}>
-              智能投顾系统
-            </span>
-          </Space>
-          <Dropdown menu={{ items: userMenuItems, onClick: handleUserMenuClick }}>
-            <Space style={{ cursor: 'pointer' }}>
-              <Avatar icon={<UserOutlined />} />
-              <span>管理员</span>
+        <Header style={{ padding: 0, background: colorBgContainer }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', height: '100%', padding: '0 24px' }}>
+            <Button
+              type="text"
+              icon={collapsed ? <MenuUnfoldOutlined /> : <MenuFoldOutlined />}
+              onClick={() => setCollapsed(!collapsed)}
+              style={{
+                fontSize: '16px',
+                width: 64,
+                height: 64,
+              }}
+            />
+            <Space size="large">
+              <Button type="text" icon={<BellOutlined />} />
+              <Dropdown menu={{ items: userMenuItems }} placement="bottomRight">
+                <Space style={{ cursor: 'pointer' }}>
+                  <Avatar icon={<UserOutlined />} />
+                  <span>管理员</span>
+                </Space>
+              </Dropdown>
             </Space>
-          </Dropdown>
+          </div>
         </Header>
         <Content
           style={{
-            margin: '24px',
-            padding: '24px 32px',
-            minHeight: 'calc(100vh - 112px)',
+            margin: '24px 16px',
+            padding: 24,
+            minHeight: 280,
             background: colorBgContainer,
             borderRadius: borderRadiusLG,
-            boxShadow: '0 2px 8px rgba(0,0,0,0.06)',
-            overflow: 'auto',
           }}
         >
           <Outlet />

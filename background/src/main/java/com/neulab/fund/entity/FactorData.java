@@ -21,7 +21,7 @@ public class FactorData {
     /** 因子值 */
     private Double value;
     /** 数据日期 */
-    private LocalDate date;
+    private String dataDate;
     /** 创建时间 */
     private LocalDateTime createdAt;
     /** 更新时间 */
@@ -36,8 +36,8 @@ public class FactorData {
     public void setFundId(Long fundId) { this.fundId = fundId; }
     public Double getValue() { return value; }
     public void setValue(Double value) { this.value = value; }
-    public LocalDate getDate() { return date; }
-    public void setDate(LocalDate date) { this.date = date; }
+    public String getDataDate() { return dataDate; }
+    public void setDataDate(String dataDate) { this.dataDate = dataDate; }
     public LocalDateTime getCreatedAt() { return createdAt; }
     public void setCreatedAt(LocalDateTime createdAt) { this.createdAt = createdAt; }
     public LocalDateTime getUpdatedAt() { return updatedAt; }

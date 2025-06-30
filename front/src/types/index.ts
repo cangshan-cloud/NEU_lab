@@ -1,6 +1,6 @@
 // 通用响应类型
 export interface ApiResponse<T = any> {
-  code: number;
+  code: number; // 0表示成功，-1表示失败
   message: string;
   data: T;
 }
@@ -17,8 +17,9 @@ export interface PageResult<T> {
 // 基金公司类型
 export interface FundCompany {
   id: number;
-  companyCode: string;
-  companyName: string;
+  companyCode?: string;
+  companyName?: string;
+  name: string; // 匹配后端实体类字段名
   companyShortName?: string;
   establishmentDate?: string;
   registeredCapital?: number;
@@ -28,7 +29,8 @@ export interface FundCompany {
   website?: string;
   address?: string;
   businessLicense?: string;
-  status: string;
+  status?: string;
+  description?: string;
   createdAt: string;
   updatedAt: string;
 }
@@ -38,6 +40,7 @@ export interface FundManager {
   id: number;
   managerCode: string;
   managerName: string;
+  name?: string; // 兼容后端返回 name 字段
   gender?: string;
   birthDate?: string;
   education?: string;

@@ -15,7 +15,7 @@ const ProductReviewList: React.FC = () => {
     setLoading(true);
     try {
       const response = await getProductReviewList();
-      if (response.data.code === 200) {
+      if (response.data.code === 0) {
         setDataSource(response.data.data.content || response.data.data);
       }
     } catch (error) {
@@ -36,7 +36,7 @@ const ProductReviewList: React.FC = () => {
       onOk: async () => {
         try {
           const response = await deleteProductReview(id);
-          if (response.data.code === 200) {
+          if (response.data.code === 0) {
             message.success('删除成功');
             fetchData();
           }

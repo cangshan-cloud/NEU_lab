@@ -32,8 +32,7 @@ export const fundCompanyApi = {
     del(`/fund-companies/${id}`),
   
   // 获取所有基金公司（不分页）
-  getAll: () => 
-    get<FundCompany[]>('/fund-companies/all'),
+  getAll: () => get<FundCompany[]>('/fund-companies'),
 };
 
 // 基金经理API
