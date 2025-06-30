@@ -2,6 +2,7 @@ package com.neulab.fund.entity;
 
 import jakarta.persistence.*;
 import java.time.LocalDateTime;
+import java.util.List;
 
 /**
  * 基金组合实体
@@ -14,27 +15,43 @@ public class FundPortfolio {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
     /** 组合名称 */
-    private String name;
-    /** 组合描述 */
-    private String description;
-    /** 用户ID */
-    private Long userId;
+    @Column(name = "name")
+    private String portfolioName;
     /** 创建时间 */
+    @Column(name = "created_at")
     private LocalDateTime createdAt;
     /** 更新时间 */
+    @Column(name = "updated_at")
     private LocalDateTime updatedAt;
+
+    @ManyToMany
+    @JoinTable(
+        name = "fund_portfolio_relation",
+        joinColumns = @JoinColumn(name = "portfolio_id"),
+        inverseJoinColumns = @JoinColumn(name = "fund_id")
+    )
+    private List<Fund> funds;
 
     // getter/setter
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }
-    public String getName() { return name; }
-    public void setName(String name) { this.name = name; }
-    public String getDescription() { return description; }
-    public void setDescription(String description) { this.description = description; }
-    public Long getUserId() { return userId; }
-    public void setUserId(Long userId) { this.userId = userId; }
+    public String getPortfolioName() { return portfolioName; }
+    public void setPortfolioName(String portfolioName) { this.portfolioName = portfolioName; }
     public LocalDateTime getCreatedAt() { return createdAt; }
     public void setCreatedAt(LocalDateTime createdAt) { this.createdAt = createdAt; }
     public LocalDateTime getUpdatedAt() { return updatedAt; }
     public void setUpdatedAt(LocalDateTime updatedAt) { this.updatedAt = updatedAt; }
+    public List<Fund> getFunds() { return funds; }
+    public void setFunds(List<Fund> funds) { this.funds = funds; }
+
+    @PrePersist
+    public void prePersist() {
+        this.createdAt = LocalDateTime.now();
+        this.updatedAt = LocalDateTime.now();
+    }
+
+    @PreUpdate
+    public void preUpdate() {
+        this.updatedAt = LocalDateTime.now();
+    }
 } 

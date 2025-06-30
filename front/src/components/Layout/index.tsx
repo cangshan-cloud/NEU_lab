@@ -59,6 +59,10 @@ const Layout: React.FC = () => {
           key: '/funds/managers',
           label: '基金经理',
         },
+        {
+          key: '/funds/portfolios',
+          label: '基金组合管理',
+        },
       ],
     },
     {

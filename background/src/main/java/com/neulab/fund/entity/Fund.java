@@ -30,6 +30,16 @@ public class Fund {
     private LocalDateTime createdAt;
     /** 更新时间 */
     private LocalDateTime updatedAt;
+    /** 风险等级 */
+    private String riskLevel;
+
+    @ManyToMany
+    @JoinTable(
+        name = "fund_tag_relation",
+        joinColumns = @JoinColumn(name = "fund_id"),
+        inverseJoinColumns = @JoinColumn(name = "tag_id")
+    )
+    private java.util.List<FundTag> tags;
 
     // getter/setter
     public Long getId() { return id; }
@@ -50,4 +60,8 @@ public class Fund {
     public void setCreatedAt(LocalDateTime createdAt) { this.createdAt = createdAt; }
     public LocalDateTime getUpdatedAt() { return updatedAt; }
     public void setUpdatedAt(LocalDateTime updatedAt) { this.updatedAt = updatedAt; }
+    public String getRiskLevel() { return riskLevel; }
+    public void setRiskLevel(String riskLevel) { this.riskLevel = riskLevel; }
+    public java.util.List<FundTag> getTags() { return tags; }
+    public void setTags(java.util.List<FundTag> tags) { this.tags = tags; }
 } 

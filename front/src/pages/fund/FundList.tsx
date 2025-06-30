@@ -22,8 +22,8 @@ import {
   ReloadOutlined
 } from '@ant-design/icons';
 import { useNavigate } from 'react-router-dom';
-import { fundApi, fundCompanyApi, fundManagerApi } from '../../api';
-import type { Fund, FundCompany, FundManager, QueryParams } from '../../types';
+import { fundApi, fundCompanyApi, fundManagerApi, fundTagApi, fundPortfolioApi } from '../../api';
+import type { Fund, FundCompany, FundManager, QueryParams, FundTag } from '../../types';
 
 const { Search } = Input;
 const { Option } = Select;
@@ -45,6 +45,13 @@ const FundList: React.FC = () => {
   const [editingFund, setEditingFund] = useState<Fund | null>(null);
   const [form] = Form.useForm();
   const navigate = useNavigate();
+  const [companiesLoaded, setCompaniesLoaded] = useState(false);
+  const [managersLoaded, setManagersLoaded] = useState(false);
+  const [tags, setTags] = useState<FundTag[]>([]);
+  const [selectedTags, setSelectedTags] = useState<number[]>([]);
+  const [selectedRowKeys, setSelectedRowKeys] = useState<React.Key[]>([]);
+  const [portfolioModalVisible, setPortfolioModalVisible] = useState(false);
+  const [portfolioName, setPortfolioName] = useState('');
 
   // 加载基金列表
   const loadFunds = async () => {
@@ -53,20 +60,42 @@ const FundList: React.FC = () => {
       const params: QueryParams = {
         page: current - 1,
         size: pageSize,
-        keyword: searchKeyword,
-        companyId: selectedCompany,
-        managerId: selectedManager,
-        fundType: selectedType,
-        riskLevel: selectedRiskLevel,
+        ...(searchKeyword && { keyword: searchKeyword }),
+        ...(selectedCompany && { companyId: selectedCompany }),
+        ...(selectedManager && { managerId: selectedManager }),
+        ...(selectedType && { fundType: selectedType }),
+        ...(selectedRiskLevel && { riskLevel: selectedRiskLevel }),
+        ...(selectedTags.length > 0 && { tagIds: selectedTags }),
       };
-      
       const response = await fundApi.getList(params);
-      if (response.data.code === 200) {
-        setFunds(response.data.data.content);
-        setTotal(response.data.data.totalElements);
+      console.log('基金接口返回', response);
+      let fundList: any[] = [];
+      if (response.data.data) {
+        if (Array.isArray(response.data.data)) {
+          fundList = response.data.data;
+        } else if (response.data.data && Array.isArray((response.data.data as any).content)) {
+          fundList = (response.data.data as any).content;
+        }
       }
+      fundList = fundList.map((fund: Fund) => {
+        const riskLevel = fund.riskLevel || fund.status || '';
+        return {
+          ...fund,
+          companyName: companies.find(c => c.id === fund.companyId)?.companyName
+            || companies.find(c => c.id === fund.companyId)?.name
+            || '',
+          managerName: managers.find(m => m.id === fund.managerId)?.managerName
+            || managers.find(m => m.id === fund.managerId)?.name
+            || '',
+          riskLevel,
+        };
+      });
+      console.log('最终传给表格的数据 funds:', fundList);
+      setFunds(fundList);
+      setTotal(response.data.data.totalElements || fundList.length || 0);
     } catch (error) {
       message.error('加载基金列表失败');
+      setFunds([]);
     } finally {
       setLoading(false);
     }
@@ -76,11 +105,19 @@ const FundList: React.FC = () => {
   const loadCompanies = async () => {
     try {
       const response = await fundCompanyApi.getAll();
-      if (response.data.code === 0) {
+      console.log('公司接口返回', response);
+      if (Array.isArray(response.data.data)) {
         setCompanies(response.data.data);
+      } else if (response.data.data && Array.isArray((response.data.data as any).content)) {
+        setCompanies((response.data.data as any).content);
+      } else {
+        setCompanies([]);
       }
     } catch (error) {
       message.error('加载基金公司列表失败');
+      setCompanies([]);
+    } finally {
+      setCompaniesLoaded(true);
     }
   };
 
@@ -88,19 +125,50 @@ const FundList: React.FC = () => {
   const loadManagers = async () => {
     try {
       const response = await fundManagerApi.getList();
-      if (response.data.code === 0) {
-        setManagers(response.data.data.content || response.data.data);
+      console.log('经理接口返回', response);
+      if (Array.isArray(response.data.data)) {
+        setManagers(response.data.data);
+      } else if (response.data.data && Array.isArray(response.data.data.content)) {
+        setManagers(response.data.data.content);
+      } else {
+        setManagers([]);
       }
     } catch (error) {
       message.error('加载基金经理列表失败');
+      setManagers([]);
+    } finally {
+      setManagersLoaded(true);
     }
   };
 
+  // 加载标签
+  const loadTags = async () => {
+    try {
+      const res = await fundTagApi.getAll();
+      setTags(res.data.data);
+    } catch (e) {
+      setTags([]);
+    }
+  };
+
+  // 只在公司和经理都加载完后再加载基金
   useEffect(() => {
-    loadFunds();
     loadCompanies();
     loadManagers();
-  }, [current, pageSize, searchKeyword, selectedCompany, selectedManager, selectedType, selectedRiskLevel]);
+    loadTags();
+    // 临时测试：直接写死一条数据
+    setFunds([
+      { id: 1, code: '001', name: '测试基金', type: 'STOCK', companyName: '测试公司', managerName: '张三' }
+    ]);
+    // eslint-disable-next-line
+  }, []);
+
+  useEffect(() => {
+    if (companiesLoaded && managersLoaded) {
+      loadFunds();
+    }
+    // eslint-disable-next-line
+  }, [companiesLoaded, managersLoaded, current, pageSize, searchKeyword, selectedCompany, selectedManager, selectedType, selectedRiskLevel, selectedTags]);
 
   // 处理搜索
   const handleSearch = (value: string) => {
@@ -134,6 +202,7 @@ const FundList: React.FC = () => {
     setSelectedManager('');
     setSelectedType('');
     setSelectedRiskLevel('');
+    setSelectedTags([]);
     setCurrent(1);
   };
 
@@ -141,7 +210,20 @@ const FundList: React.FC = () => {
   const handleEdit = (fund?: Fund) => {
     setEditingFund(fund || null);
     if (fund) {
-      form.setFieldsValue(fund);
+      form.setFieldsValue({
+        fundName: fund.name,
+        fundCode: fund.code,
+        fundType: fund.type,
+        status: fund.status,
+        companyId: fund.companyId,
+        managerId: fund.managerId,
+        riskLevel: fund.riskLevel,
+        inceptionDate: fund.inceptionDate,
+        fundSize: fund.fundSize,
+        nav: fund.nav,
+        navDate: fund.navDate,
+        // 其它字段按需补充
+      });
     } else {
       form.resetFields();
     }
@@ -152,12 +234,29 @@ const FundList: React.FC = () => {
   const handleSave = async () => {
     try {
       const values = await form.validateFields();
+      // 字段映射，保证和后端实体类一致
+      const payload = {
+        name: values.fundName,
+        code: values.fundCode,
+        type: values.fundType,
+        status: values.status, // 如果表单有 status 字段
+        companyId: values.companyId,
+        managerId: values.managerId,
+        riskLevel: values.riskLevel,
+        inceptionDate: values.inceptionDate, // 如有
+        fundSize: values.fundSize, // 如有
+        nav: values.nav, // 如有
+        navDate: values.navDate, // 如有
+        // 其它字段按需补充
+      };
       if (editingFund) {
-        await fundApi.update(editingFund.id, values);
+        await fundApi.update(editingFund.id, payload);
         message.success('更新基金成功');
       } else {
-        await fundApi.create(values);
+        const res = await fundApi.create(payload);
+        console.log('新增返回', res);
         message.success('创建基金成功');
+        setCurrent(1);
       }
       setModalVisible(false);
       loadFunds();
@@ -177,37 +276,34 @@ const FundList: React.FC = () => {
     }
   };
 
+  // 保存为组合
+  const handleSavePortfolio = async () => {
+    await fundPortfolioApi.create({
+      portfolioName,
+      funds: selectedRowKeys.map(id => ({ id: Number(id) })) as any,
+    });
+    setPortfolioModalVisible(false);
+    setPortfolioName('');
+    setSelectedRowKeys([]);
+    message.success('保存组合成功');
+  };
+
   // 表格列定义
   const columns = [
     {
       title: '基金代码',
-      dataIndex: 'fundCode',
-      key: 'fundCode',
-      width: 100,
-      fixed: 'left' as const,
+      dataIndex: 'code',
+      key: 'code',
     },
     {
       title: '基金名称',
-      dataIndex: 'fundName',
-      key: 'fundName',
-      width: 250,
-      ellipsis: true,
+      dataIndex: 'name',
+      key: 'name',
     },
     {
       title: '基金类型',
-      dataIndex: 'fundType',
-      key: 'fundType',
-      width: 100,
-      render: (type: string) => {
-        const typeMap: Record<string, { text: string; color: string }> = {
-          STOCK: { text: '股票型', color: 'red' },
-          BOND: { text: '债券型', color: 'green' },
-          HYBRID: { text: '混合型', color: 'blue' },
-          MONEY: { text: '货币型', color: 'orange' },
-        };
-        const config = typeMap[type] || { text: type, color: 'default' };
-        return <Tag color={config.color}>{config.text}</Tag>;
-      },
+      dataIndex: 'type',
+      key: 'type',
     },
     {
       title: '基金公司',
@@ -238,33 +334,21 @@ const FundList: React.FC = () => {
       render: (nav: number) => nav ? nav.toFixed(4) : '-',
     },
     {
-      title: '净值日期',
-      dataIndex: 'navDate',
-      key: 'navDate',
-      width: 100,
-      render: (date: string) => date ? new Date(date).toLocaleDateString() : '-',
-    },
-    {
       title: '风险等级',
       dataIndex: 'riskLevel',
       key: 'riskLevel',
       width: 100,
       render: (level: string) => {
+        if (!level) return '-';
+        const upperLevel = level.toUpperCase();
         const levelMap: Record<string, { text: string; color: string }> = {
           LOW: { text: '低风险', color: 'green' },
           MEDIUM: { text: '中风险', color: 'orange' },
           HIGH: { text: '高风险', color: 'red' },
         };
-        const config = levelMap[level] || { text: level, color: 'default' };
+        const config = levelMap[upperLevel] || { text: level, color: 'default' };
         return <Tag color={config.color}>{config.text}</Tag>;
       },
-    },
-    {
-      title: '成立日期',
-      dataIndex: 'inceptionDate',
-      key: 'inceptionDate',
-      width: 100,
-      render: (date: string) => date ? new Date(date).toLocaleDateString() : '-',
     },
     {
       title: '状态',
@@ -280,32 +364,10 @@ const FundList: React.FC = () => {
     {
       title: '操作',
       key: 'action',
-      width: 200,
-      fixed: 'right' as const,
       render: (_: any, record: Fund) => (
         <Space size="middle">
-          <Button 
-            type="link" 
-            size="small"
-            onClick={() => navigate(`/fund/detail/${record.id}`)}
-          >
-            查看
-          </Button>
-          <Button 
-            type="link" 
-            size="small"
-            onClick={() => handleEdit(record)}
-          >
-            编辑
-          </Button>
-          <Button 
-            type="link" 
-            size="small"
-            danger
-            onClick={() => handleDelete(record.id)}
-          >
-            删除
-          </Button>
+          <Button type="link" onClick={() => handleEdit(record)}>编辑</Button>
+          <Button type="link" danger onClick={() => handleDelete(record.id)}>删除</Button>
         </Space>
       ),
     },
@@ -369,16 +431,36 @@ const FundList: React.FC = () => {
               <Option value="MEDIUM">中风险</Option>
               <Option value="HIGH">高风险</Option>
             </Select>
+            <Select
+              mode="multiple"
+              placeholder="选择标签"
+              style={{ width: 200 }}
+              value={selectedTags}
+              onChange={setSelectedTags}
+              allowClear
+            >
+              {tags.map(tag => (
+                <Select.Option key={tag.id} value={tag.id}>{tag.tagName}</Select.Option>
+              ))}
+            </Select>
             <Button icon={<ReloadOutlined />} onClick={handleReset}>
               重置
             </Button>
             <Button type="primary" icon={<PlusOutlined />} onClick={() => handleEdit()}>
               新增基金
             </Button>
+            <Button
+              type="primary"
+              disabled={selectedRowKeys.length === 0}
+              onClick={() => setPortfolioModalVisible(true)}
+            >
+              保存为组合
+            </Button>
           </Space>
         </div>
 
         {/* 表格 */}
+
         <Table
           columns={columns}
           dataSource={funds}
@@ -398,7 +480,12 @@ const FundList: React.FC = () => {
           }}
           scroll={{ x: 1400, y: 600 }}
           size="middle"
+          rowSelection={{
+            selectedRowKeys,
+            onChange: setSelectedRowKeys,
+          }}
         />
+        {console.log('渲染时 funds:', funds)}
       </Card>
 
       {/* 新增/编辑模态框 */}
@@ -476,6 +563,19 @@ const FundList: React.FC = () => {
             </Select>
           </Form.Item>
         </Form>
+      </Modal>
+
+      <Modal
+        title="保存为基金组合"
+        open={portfolioModalVisible}
+        onOk={handleSavePortfolio}
+        onCancel={() => setPortfolioModalVisible(false)}
+      >
+        <Input
+          placeholder="请输入组合名称"
+          value={portfolioName}
+          onChange={e => setPortfolioName(e.target.value)}
+        />
       </Modal>
     </div>
   );

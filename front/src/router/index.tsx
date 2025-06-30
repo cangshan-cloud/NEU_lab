@@ -20,6 +20,7 @@ import TradeRecordList from '../pages/trade/TradeRecordList';
 import UserPositionList from '../pages/trade/UserPositionList';
 import CapitalFlowList from '../pages/trade/CapitalFlowList';
 import ProductAdd from '../pages/product/ProductAdd';
+import FundPortfolioList from '../pages/fund/FundPortfolioList';
 
 // 路由配置
 export const router = createBrowserRouter([
@@ -39,6 +40,7 @@ export const router = createBrowserRouter([
           { path: ':id', element: <FundDetail /> },
           { path: 'companies', element: <FundCompanyList /> },
           { path: 'managers', element: <FundManagerList /> },
+          { path: 'portfolios', element: <FundPortfolioList /> },
         ],
       },
       // 因子管理子系统

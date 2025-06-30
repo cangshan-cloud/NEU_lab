@@ -28,7 +28,7 @@ public class FundServiceImpl implements FundService {
     
     @Autowired
     private FundRepository fundRepository;
-    
+
     @Autowired
     private FundCompanyRepository fundCompanyRepository;
     
@@ -45,29 +45,35 @@ public class FundServiceImpl implements FundService {
 
     @Override
     public Page<Fund> getFundsWithFilter(Map<String, Object> filters, Pageable pageable) {
-        // 构建动态查询条件
         Specification<Fund> spec = Specification.where(null);
-        
-        if (filters.containsKey("fundType")) {
-            String fundType = (String) filters.get("fundType");
-            spec = spec.and((root, query, cb) -> cb.equal(root.get("type"), fundType));
+        if (filters.containsKey("keyword")) {
+            String keyword = (String) filters.get("keyword");
+            spec = spec.and((root, query, cb) -> cb.or(
+                cb.like(root.get("name"), "%" + keyword + "%"),
+                cb.like(root.get("code"), "%" + keyword + "%")
+            ));
         }
-        
-        if (filters.containsKey("riskLevel")) {
-            String riskLevel = (String) filters.get("riskLevel");
-            spec = spec.and((root, query, cb) -> cb.equal(root.get("status"), riskLevel));
-        }
-        
         if (filters.containsKey("companyId")) {
             Long companyId = Long.valueOf(filters.get("companyId").toString());
             spec = spec.and((root, query, cb) -> cb.equal(root.get("companyId"), companyId));
         }
-        
         if (filters.containsKey("managerId")) {
             Long managerId = Long.valueOf(filters.get("managerId").toString());
             spec = spec.and((root, query, cb) -> cb.equal(root.get("managerId"), managerId));
         }
-        
+        if (filters.containsKey("type")) {
+            String type = (String) filters.get("type");
+            spec = spec.and((root, query, cb) -> cb.equal(root.get("type"), type));
+        }
+        if (filters.containsKey("riskLevel")) {
+            String riskLevel = (String) filters.get("riskLevel");
+            spec = spec.and((root, query, cb) -> cb.equal(root.get("riskLevel"), riskLevel));
+        }
+        if (filters.containsKey("tagIds")) {
+            @SuppressWarnings("unchecked")
+            java.util.List<Long> tagIds = (java.util.List<Long>) filters.get("tagIds");
+            spec = spec.and((root, query, cb) -> root.join("tags").get("id").in(tagIds));
+        }
         return fundRepository.findAll(spec, pageable);
     }
 

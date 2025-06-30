@@ -14,9 +14,7 @@ public class FundTag {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
     /** 标签名 */
-    private String name;
-    /** 标签描述 */
-    private String description;
+    private String tagName;
     /** 创建时间 */
     private LocalDateTime createdAt;
     /** 更新时间 */
@@ -25,10 +23,8 @@ public class FundTag {
     // getter/setter
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }
-    public String getName() { return name; }
-    public void setName(String name) { this.name = name; }
-    public String getDescription() { return description; }
-    public void setDescription(String description) { this.description = description; }
+    public String getTagName() { return tagName; }
+    public void setTagName(String tagName) { this.tagName = tagName; }
     public LocalDateTime getCreatedAt() { return createdAt; }
     public void setCreatedAt(LocalDateTime createdAt) { this.createdAt = createdAt; }
     public LocalDateTime getUpdatedAt() { return updatedAt; }

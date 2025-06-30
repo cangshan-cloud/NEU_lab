@@ -60,6 +60,9 @@ export interface Fund {
   fundCode: string;
   fundName: string;
   fundType?: string;
+  name?: string;   // 兼容后端返回
+  code?: string;   // 兼容后端返回
+  type?: string;   // 兼容后端返回
   fundCategory?: string;
   companyId?: number;
   managerId?: number;
@@ -103,6 +106,7 @@ export interface FundPortfolio {
   status: string;
   createdAt: string;
   updatedAt: string;
+  funds?: Fund[]; // 修正为 Fund[]，与后端一致
 }
 
 // 因子类型
