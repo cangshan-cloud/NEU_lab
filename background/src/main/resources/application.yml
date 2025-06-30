@@ -9,7 +9,7 @@ spring:
   datasource:
     url: jdbc:mysql://localhost:3306/neu_fund_advisory?useUnicode=true&characterEncoding=utf8&useSSL=false&serverTimezone=Asia/Shanghai&allowPublicKeyRetrieval=true
     username: root
-    password: your_password
+    password: Cn2198124380..
     driver-class-name: com.mysql.cj.jdbc.Driver
   jpa:
     hibernate:

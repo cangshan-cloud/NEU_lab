@@ -21,6 +21,10 @@ public class FactorTreeNode {
     private Long factorId;
     /** 节点名称 */
     private String name;
+    /** 节点顺序 */
+    private Integer nodeOrder;
+    /** 节点类型 */
+    private String nodeType;
     /** 创建时间 */
     private LocalDateTime createdAt;
     /** 更新时间 */
@@ -37,6 +41,10 @@ public class FactorTreeNode {
     public void setFactorId(Long factorId) { this.factorId = factorId; }
     public String getName() { return name; }
     public void setName(String name) { this.name = name; }
+    public Integer getNodeOrder() { return nodeOrder; }
+    public void setNodeOrder(Integer nodeOrder) { this.nodeOrder = nodeOrder; }
+    public String getNodeType() { return nodeType; }
+    public void setNodeType(String nodeType) { this.nodeType = nodeType; }
     public LocalDateTime getCreatedAt() { return createdAt; }
     public void setCreatedAt(LocalDateTime createdAt) { this.createdAt = createdAt; }
     public LocalDateTime getUpdatedAt() { return updatedAt; }

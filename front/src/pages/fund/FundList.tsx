@@ -76,7 +76,7 @@ const FundList: React.FC = () => {
   const loadCompanies = async () => {
     try {
       const response = await fundCompanyApi.getAll();
-      if (response.data.code === 200) {
+      if (response.data.code === 0) {
         setCompanies(response.data.data);
       }
     } catch (error) {
@@ -88,8 +88,8 @@ const FundList: React.FC = () => {
   const loadManagers = async () => {
     try {
       const response = await fundManagerApi.getList();
-      if (response.data.code === 200) {
-        setManagers(response.data.data.content);
+      if (response.data.code === 0) {
+        setManagers(response.data.data.content || response.data.data);
       }
     } catch (error) {
       message.error('加载基金经理列表失败');
@@ -332,7 +332,7 @@ const FundList: React.FC = () => {
             >
               {companies.map(company => (
                 <Option key={company.id} value={company.id.toString()}>
-                  {company.companyName}
+                  {company.companyName || company.name}
                 </Option>
               ))}
             </Select>
@@ -344,7 +344,7 @@ const FundList: React.FC = () => {
             >
               {managers.map(manager => (
                 <Option key={manager.id} value={manager.id.toString()}>
-                  {manager.managerName}
+                  {manager.managerName || manager.name}
                 </Option>
               ))}
             </Select>
@@ -458,7 +458,7 @@ const FundList: React.FC = () => {
             <Select placeholder="请选择基金公司">
               {companies.map(company => (
                 <Option key={company.id} value={company.id}>
-                  {company.companyName}
+                  {company.companyName || company.name}
                 </Option>
               ))}
             </Select>
@@ -470,7 +470,7 @@ const FundList: React.FC = () => {
             <Select placeholder="请选择基金经理" allowClear>
               {managers.map(manager => (
                 <Option key={manager.id} value={manager.id}>
-                  {manager.managerName}
+                  {manager.managerName || manager.name}
                 </Option>
               ))}
             </Select>

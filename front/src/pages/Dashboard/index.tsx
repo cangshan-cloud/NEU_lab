@@ -1,167 +1,146 @@
-import React, { useEffect, useState } from 'react';
-import { Row, Col, Card, Statistic, Table, Progress, Typography } from 'antd';
-import { 
-  FundOutlined, 
-  ExperimentOutlined, 
-  SettingOutlined, 
+import React, { useState, useEffect } from 'react';
+import {
+  Row,
+  Col,
+  Card,
+  Statistic,
+  Progress,
+  Table,
+  Tag,
+  Space,
+  Button,
+  Typography,
+  Divider,
+  List,
+  Avatar,
+  Badge,
+} from 'antd';
+import {
+  FundOutlined,
+  ExperimentOutlined,
+  SettingOutlined,
   ShoppingOutlined,
   TransactionOutlined,
   ArrowUpOutlined,
-  ArrowDownOutlined
+  ArrowDownOutlined,
+  EyeOutlined,
+  EditOutlined,
+  DeleteOutlined,
 } from '@ant-design/icons';
-import * as echarts from 'echarts';
+import { Line, Pie, Column } from '@ant-design/plots';
 
-const { Title } = Typography;
-
-interface DashboardStats {
-  totalFunds: number;
-  totalFactors: number;
-  totalStrategies: number;
-  totalProducts: number;
-  totalOrders: number;
-  totalAssets: number;
-  dailyReturn: number;
-  monthlyReturn: number;
-}
+const { Title, Text } = Typography;
 
 const Dashboard: React.FC = () => {
-  const [stats, setStats] = useState<DashboardStats>({
-    totalFunds: 0,
-    totalFactors: 0,
-    totalStrategies: 0,
-    totalProducts: 0,
-    totalOrders: 0,
-    totalAssets: 0,
-    dailyReturn: 0,
-    monthlyReturn: 0,
-  });
+  const [loading, setLoading] = useState(false);
 
-  useEffect(() => {
-    // 模拟数据加载
-    setStats({
-      totalFunds: 1250,
-      totalFactors: 156,
-      totalStrategies: 89,
-      totalProducts: 45,
-      totalOrders: 2340,
-      totalAssets: 125000000,
-      dailyReturn: 0.0234,
-      monthlyReturn: 0.156,
-    });
-
-    // 初始化图表
-    initCharts();
-  }, []);
-
-  const initCharts = () => {
-    // 收益趋势图
-    const returnChart = echarts.init(document.getElementById('returnChart'));
-    const returnOption = {
-      title: {
-        text: '收益趋势',
-        left: 'center'
-      },
-      tooltip: {
-        trigger: 'axis'
-      },
-      legend: {
-        data: ['日收益率', '累计收益率'],
-        top: 30
-      },
-      xAxis: {
-        type: 'category',
-        data: ['1月', '2月', '3月', '4月', '5月', '6月']
-      },
-      yAxis: {
-        type: 'value',
-        axisLabel: {
-          formatter: '{value}%'
-        }
-      },
-      series: [
-        {
-          name: '日收益率',
-          type: 'line',
-          data: [2.1, 1.8, 2.3, 1.9, 2.5, 2.2],
-          smooth: true
-        },
-        {
-          name: '累计收益率',
-          type: 'line',
-          data: [2.1, 3.9, 6.2, 8.1, 10.6, 12.8],
-          smooth: true
-        }
-      ]
-    };
-    returnChart.setOption(returnOption);
-
-    // 资产配置饼图
-    const assetChart = echarts.init(document.getElementById('assetChart'));
-    const assetOption = {
-      title: {
-        text: '资产配置',
-        left: 'center'
-      },
-      tooltip: {
-        trigger: 'item',
-        formatter: '{a} <br/>{b}: {c} ({d}%)'
-      },
-      legend: {
-        orient: 'vertical',
-        left: 'left',
-        top: 'middle'
-      },
-      series: [
-        {
-          name: '资产配置',
-          type: 'pie',
-          radius: '50%',
-          data: [
-            { value: 35, name: '股票型基金' },
-            { value: 25, name: '债券型基金' },
-            { value: 20, name: '混合型基金' },
-            { value: 15, name: '货币型基金' },
-            { value: 5, name: '其他' }
-          ],
-          emphasis: {
-            itemStyle: {
-              shadowBlur: 10,
-              shadowOffsetX: 0,
-              shadowColor: 'rgba(0, 0, 0, 0.5)'
-            }
-          }
-        }
-      ]
-    };
-    assetChart.setOption(assetOption);
-
-    // 清理函数
-    return () => {
-      returnChart.dispose();
-      assetChart.dispose();
-    };
-  };
-
-  const recentOrdersColumns = [
+  // 统计数据
+  const statistics = [
     {
-      title: '订单编号',
+      title: '基金总数',
+      value: 1256,
+      prefix: <FundOutlined />,
+      color: '#1890ff',
+      change: 12.5,
+      changeType: 'up',
+    },
+    {
+      title: '因子数量',
+      value: 89,
+      prefix: <ExperimentOutlined />,
+      color: '#52c41a',
+      change: 8.2,
+      changeType: 'up',
+    },
+    {
+      title: '策略数量',
+      value: 45,
+      prefix: <SettingOutlined />,
+      color: '#faad14',
+      change: -2.1,
+      changeType: 'down',
+    },
+    {
+      title: '产品数量',
+      value: 23,
+      prefix: <ShoppingOutlined />,
+      color: '#f5222d',
+      change: 15.3,
+      changeType: 'up',
+    },
+  ];
+
+  // 最近交易数据
+  const recentTrades = [
+    {
+      key: '1',
+      orderNo: 'T20241201001',
+      product: '稳健配置组合',
+      amount: 100000,
+      status: 'completed',
+      time: '2024-12-01 10:30:00',
+    },
+    {
+      key: '2',
+      orderNo: 'T20241201002',
+      product: '成长进取组合',
+      amount: 50000,
+      status: 'processing',
+      time: '2024-12-01 11:15:00',
+    },
+    {
+      key: '3',
+      orderNo: 'T20241201003',
+      product: '价值投资组合',
+      amount: 200000,
+      status: 'completed',
+      time: '2024-12-01 14:20:00',
+    },
+  ];
+
+  // 策略表现数据
+  const strategyPerformance = [
+    { strategy: '稳健配置', return: 8.5, risk: 3.2, sharpe: 1.8 },
+    { strategy: '成长进取', return: 15.2, risk: 8.5, sharpe: 1.4 },
+    { strategy: '价值投资', return: 12.1, risk: 6.8, sharpe: 1.6 },
+    { strategy: '量化对冲', return: 6.8, risk: 2.1, sharpe: 2.1 },
+  ];
+
+  // 收益率趋势数据
+  const returnTrendData = [
+    { date: '2024-01', value: 2.1, type: '稳健配置' },
+    { date: '2024-02', value: 2.8, type: '稳健配置' },
+    { date: '2024-03', value: 3.2, type: '稳健配置' },
+    { date: '2024-04', value: 3.8, type: '稳健配置' },
+    { date: '2024-05', value: 4.2, type: '稳健配置' },
+    { date: '2024-06', value: 4.8, type: '稳健配置' },
+    { date: '2024-07', value: 5.1, type: '稳健配置' },
+    { date: '2024-08', value: 5.8, type: '稳健配置' },
+    { date: '2024-09', value: 6.2, type: '稳健配置' },
+    { date: '2024-10', value: 7.1, type: '稳健配置' },
+    { date: '2024-11', value: 7.8, type: '稳健配置' },
+    { date: '2024-12', value: 8.5, type: '稳健配置' },
+  ];
+
+  // 资产配置数据
+  const assetAllocationData = [
+    { type: '股票型基金', value: 45 },
+    { type: '债券型基金', value: 30 },
+    { type: '混合型基金', value: 15 },
+    { type: '货币型基金', value: 10 },
+  ];
+
+  // 表格列定义
+  const tradeColumns = [
+    {
+      title: '订单号',
       dataIndex: 'orderNo',
       key: 'orderNo',
     },
     {
       title: '产品名称',
-      dataIndex: 'productName',
-      key: 'productName',
-    },
-    {
-      title: '交易类型',
-      dataIndex: 'tradeType',
-      key: 'tradeType',
-      render: (type: string) => (
-        <span style={{ color: type === 'BUY' ? '#52c41a' : '#ff4d4f' }}>
-          {type === 'BUY' ? '买入' : '卖出'}
-        </span>
-      ),
+      dataIndex: 'product',
+      key: 'product',
     },
     {
       title: '金额',
@@ -173,192 +152,216 @@ const Dashboard: React.FC = () => {
       title: '状态',
       dataIndex: 'status',
       key: 'status',
-      render: (status: string) => {
-        const statusMap = {
-          PENDING: { text: '待处理', color: '#faad14' },
-          PROCESSING: { text: '处理中', color: '#1890ff' },
-          SUCCESS: { text: '成功', color: '#52c41a' },
-          FAILED: { text: '失败', color: '#ff4d4f' },
-        };
-        const config = statusMap[status as keyof typeof statusMap];
-        return <span style={{ color: config.color }}>{config.text}</span>;
-      },
+      render: (status: string) => (
+        <Tag color={status === 'completed' ? 'green' : 'orange'}>
+          {status === 'completed' ? '已完成' : '处理中'}
+        </Tag>
+      ),
+    },
+    {
+      title: '时间',
+      dataIndex: 'time',
+      key: 'time',
+    },
+    {
+      title: '操作',
+      key: 'action',
+      render: () => (
+        <Space size="small">
+          <Button type="link" size="small" icon={<EyeOutlined />}>
+            查看
+          </Button>
+        </Space>
+      ),
     },
   ];
 
-  const recentOrdersData = [
+  const strategyColumns = [
     {
-      key: '1',
-      orderNo: 'ORD202401150001',
-      productName: '价值投资产品A',
-      tradeType: 'BUY',
-      amount: 100000,
-      status: 'SUCCESS',
+      title: '策略名称',
+      dataIndex: 'strategy',
+      key: 'strategy',
     },
     {
-      key: '2',
-      orderNo: 'ORD202401150002',
-      productName: '成长投资产品B',
-      tradeType: 'BUY',
-      amount: 150000,
-      status: 'SUCCESS',
+      title: '年化收益率',
+      dataIndex: 'return',
+      key: 'return',
+      render: (value: number) => `${value}%`,
     },
     {
-      key: '3',
-      orderNo: 'ORD202401150003',
-      productName: 'FOF稳健产品C',
-      tradeType: 'BUY',
-      amount: 50000,
-      status: 'PROCESSING',
+      title: '风险指标',
+      dataIndex: 'risk',
+      key: 'risk',
+      render: (value: number) => `${value}%`,
+    },
+    {
+      title: '夏普比率',
+      dataIndex: 'sharpe',
+      key: 'sharpe',
+    },
+    {
+      title: '操作',
+      key: 'action',
+      render: () => (
+        <Space size="small">
+          <Button type="link" size="small" icon={<EyeOutlined />}>
+            详情
+          </Button>
+          <Button type="link" size="small" icon={<EditOutlined />}>
+            编辑
+          </Button>
+        </Space>
+      ),
     },
   ];
 
   return (
     <div>
-      <Title level={2}>系统概览</Title>
+      <Title level={2}>智能投顾系统仪表盘</Title>
+      <Text type="secondary">欢迎使用NEU智能投顾系统，实时监控投资组合表现</Text>
+      
+      <Divider />
       
       {/* 统计卡片 */}
-      <Row gutter={[24, 24]} style={{ marginBottom: 32 }}>
-        <Col xs={24} sm={12} md={8} lg={6} xl={4}>
-          <Card hoverable>
-            <Statistic
-              title="基金总数"
-              value={stats.totalFunds}
-              prefix={<FundOutlined />}
-              valueStyle={{ color: '#3f8600' }}
-            />
-          </Card>
-        </Col>
-        <Col xs={24} sm={12} md={8} lg={6} xl={4}>
-          <Card hoverable>
-            <Statistic
-              title="因子总数"
-              value={stats.totalFactors}
-              prefix={<ExperimentOutlined />}
-              valueStyle={{ color: '#1890ff' }}
-            />
-          </Card>
-        </Col>
-        <Col xs={24} sm={12} md={8} lg={6} xl={4}>
-          <Card hoverable>
-            <Statistic
-              title="策略总数"
-              value={stats.totalStrategies}
-              prefix={<SettingOutlined />}
-              valueStyle={{ color: '#722ed1' }}
-            />
-          </Card>
-        </Col>
-        <Col xs={24} sm={12} md={8} lg={6} xl={4}>
-          <Card hoverable>
-            <Statistic
-              title="产品总数"
-              value={stats.totalProducts}
-              prefix={<ShoppingOutlined />}
-              valueStyle={{ color: '#fa8c16' }}
-            />
-          </Card>
-        </Col>
-        <Col xs={24} sm={12} md={8} lg={6} xl={4}>
-          <Card hoverable>
-            <Statistic
-              title="总资产"
-              value={stats.totalAssets}
-              precision={0}
-              prefix="¥"
-              suffix="元"
-              valueStyle={{ color: '#3f8600' }}
-            />
-          </Card>
-        </Col>
-        <Col xs={24} sm={12} md={8} lg={6} xl={4}>
-          <Card hoverable>
-            <Statistic
-              title="交易订单"
-              value={stats.totalOrders}
-              prefix={<TransactionOutlined />}
-              valueStyle={{ color: '#1890ff' }}
-            />
-          </Card>
-        </Col>
-      </Row>
-
-      {/* 收益统计 */}
-      <Row gutter={[24, 24]} style={{ marginBottom: 32 }}>
-        <Col xs={24} sm={12} md={8} lg={6} xl={6}>
-          <Card hoverable>
-            <Statistic
-              title="日收益率"
-              value={stats.dailyReturn * 100}
-              precision={2}
-              prefix={stats.dailyReturn > 0 ? <ArrowUpOutlined /> : <ArrowDownOutlined />}
-              suffix="%"
-              valueStyle={{ color: stats.dailyReturn > 0 ? '#3f8600' : '#cf1322' }}
-            />
-          </Card>
-        </Col>
-        <Col xs={24} sm={12} md={8} lg={6} xl={6}>
-          <Card hoverable>
-            <Statistic
-              title="月收益率"
-              value={stats.monthlyReturn * 100}
-              precision={2}
-              prefix={stats.monthlyReturn > 0 ? <ArrowUpOutlined /> : <ArrowDownOutlined />}
-              suffix="%"
-              valueStyle={{ color: stats.monthlyReturn > 0 ? '#3f8600' : '#cf1322' }}
-            />
-          </Card>
-        </Col>
-        <Col xs={24} sm={12} md={8} lg={6} xl={6}>
-          <Card hoverable>
-            <Statistic
-              title="年化收益率"
-              value={12.5}
-              precision={2}
-              prefix={<ArrowUpOutlined />}
-              suffix="%"
-              valueStyle={{ color: '#3f8600' }}
-            />
-          </Card>
-        </Col>
-        <Col xs={24} sm={12} md={8} lg={6} xl={6}>
-          <Card hoverable>
-            <Statistic
-              title="最大回撤"
-              value={-8.2}
-              precision={1}
-              prefix={<ArrowDownOutlined />}
-              suffix="%"
-              valueStyle={{ color: '#cf1322' }}
-            />
-          </Card>
-        </Col>
+      <Row gutter={[16, 16]} style={{ marginBottom: 24 }}>
+        {statistics.map((stat, index) => (
+          <Col xs={24} sm={12} lg={6} key={index}>
+            <Card>
+              <Statistic
+                title={stat.title}
+                value={stat.value}
+                prefix={stat.prefix}
+                valueStyle={{ color: stat.color }}
+                suffix={
+                  <span style={{ fontSize: 14, marginLeft: 8 }}>
+                    {stat.changeType === 'up' ? (
+                      <ArrowUpOutlined style={{ color: '#52c41a' }} />
+                    ) : (
+                      <ArrowDownOutlined style={{ color: '#f5222d' }} />
+                    )}
+                    {Math.abs(stat.change)}%
+                  </span>
+                }
+              />
+            </Card>
+          </Col>
+        ))}
       </Row>
 
       {/* 图表区域 */}
-      <Row gutter={[24, 24]} style={{ marginBottom: 32 }}>
+      <Row gutter={[16, 16]} style={{ marginBottom: 24 }}>
         <Col xs={24} lg={16}>
-          <Card title="收益趋势" hoverable>
-            <div id="returnChart" style={{ height: 350 }} />
+          <Card title="收益率趋势" extra={<Button type="link">查看详情</Button>}>
+            <Line
+              data={returnTrendData}
+              xField="date"
+              yField="value"
+              seriesField="type"
+              smooth
+              point={{
+                size: 4,
+                shape: 'circle',
+              }}
+              color="#1890ff"
+              height={300}
+            />
           </Card>
         </Col>
         <Col xs={24} lg={8}>
-          <Card title="资产配置" hoverable>
-            <div id="assetChart" style={{ height: 350 }} />
+          <Card title="资产配置">
+            <Pie
+              data={assetAllocationData}
+              angleField="value"
+              colorField="type"
+              radius={0.8}
+              label={{
+                type: 'outer',
+                content: '{name} {percentage}',
+              }}
+              height={300}
+            />
           </Card>
         </Col>
       </Row>
 
-      {/* 最近交易订单 */}
-      <Card title="最近交易订单" hoverable>
-        <Table
-          columns={recentOrdersColumns}
-          dataSource={recentOrdersData}
-          pagination={false}
-          size="middle"
-          scroll={{ x: 800 }}
-        />
-      </Card>
+      {/* 表格区域 */}
+      <Row gutter={[16, 16]}>
+        <Col xs={24} lg={12}>
+          <Card title="最近交易" extra={<Button type="link">查看全部</Button>}>
+            <Table
+              columns={tradeColumns}
+              dataSource={recentTrades}
+              pagination={false}
+              size="small"
+            />
+          </Card>
+        </Col>
+        <Col xs={24} lg={12}>
+          <Card title="策略表现" extra={<Button type="link">查看全部</Button>}>
+            <Table
+              columns={strategyColumns}
+              dataSource={strategyPerformance}
+              pagination={false}
+              size="small"
+            />
+          </Card>
+        </Col>
+      </Row>
+
+      {/* 系统状态 */}
+      <Row gutter={[16, 16]} style={{ marginTop: 24 }}>
+        <Col xs={24} lg={8}>
+          <Card title="系统状态">
+            <Space direction="vertical" style={{ width: '100%' }}>
+              <div>
+                <Text>数据库连接</Text>
+                <Badge status="success" text="正常" style={{ float: 'right' }} />
+              </div>
+              <div>
+                <Text>API服务</Text>
+                <Badge status="success" text="正常" style={{ float: 'right' }} />
+              </div>
+              <div>
+                <Text>数据同步</Text>
+                <Badge status="processing" text="同步中" style={{ float: 'right' }} />
+              </div>
+            </Space>
+          </Card>
+        </Col>
+        <Col xs={24} lg={8}>
+          <Card title="今日概览">
+            <Space direction="vertical" style={{ width: '100%' }}>
+              <div>
+                <Text>新增用户</Text>
+                <Text strong style={{ float: 'right' }}>12</Text>
+              </div>
+              <div>
+                <Text>交易笔数</Text>
+                <Text strong style={{ float: 'right' }}>156</Text>
+              </div>
+              <div>
+                <Text>交易金额</Text>
+                <Text strong style={{ float: 'right' }}>¥2,450,000</Text>
+              </div>
+            </Space>
+          </Card>
+        </Col>
+        <Col xs={24} lg={8}>
+          <Card title="快速操作">
+            <Space direction="vertical" style={{ width: '100%' }}>
+              <Button type="primary" block>
+                创建新策略
+              </Button>
+              <Button block>
+                导入基金数据
+              </Button>
+              <Button block>
+                生成投资报告
+              </Button>
+            </Space>
+          </Card>
+        </Col>
+      </Row>
     </div>
   );
 };
