@@ -19,9 +19,13 @@ public class FactorData {
     /** 基金ID */
     private Long fundId;
     /** 因子值 */
-    private Double value;
+    private Double factorValue;
     /** 数据日期 */
-    private String dataDate;
+    private LocalDate dataDate;
+    /** 数据来源 */
+    private String dataSource;
+    /** 状态 */
+    private String status;
     /** 创建时间 */
     private LocalDateTime createdAt;
     /** 更新时间 */
@@ -34,10 +38,14 @@ public class FactorData {
     public void setFactorId(Long factorId) { this.factorId = factorId; }
     public Long getFundId() { return fundId; }
     public void setFundId(Long fundId) { this.fundId = fundId; }
-    public Double getValue() { return value; }
-    public void setValue(Double value) { this.value = value; }
-    public String getDataDate() { return dataDate; }
-    public void setDataDate(String dataDate) { this.dataDate = dataDate; }
+    public Double getFactorValue() { return factorValue; }
+    public void setFactorValue(Double factorValue) { this.factorValue = factorValue; }
+    public LocalDate getDataDate() { return dataDate; }
+    public void setDataDate(LocalDate dataDate) { this.dataDate = dataDate; }
+    public String getDataSource() { return dataSource; }
+    public void setDataSource(String dataSource) { this.dataSource = dataSource; }
+    public String getStatus() { return status; }
+    public void setStatus(String status) { this.status = status; }
     public LocalDateTime getCreatedAt() { return createdAt; }
     public void setCreatedAt(LocalDateTime createdAt) { this.createdAt = createdAt; }
     public LocalDateTime getUpdatedAt() { return updatedAt; }

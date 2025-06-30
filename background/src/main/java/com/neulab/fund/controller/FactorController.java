@@ -3,6 +3,7 @@ package com.neulab.fund.controller;
 import com.neulab.fund.entity.Factor;
 import com.neulab.fund.service.FactorService;
 import com.neulab.fund.vo.ApiResponse;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -13,11 +14,8 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/factors")
 public class FactorController {
-    private final FactorService factorService;
-
-    public FactorController(FactorService factorService) {
-        this.factorService = factorService;
-    }
+    @Autowired
+    private FactorService factorService;
 
     /**
      * 查询全部因子
@@ -31,7 +29,7 @@ public class FactorController {
      * 根据ID查询因子
      */
     @GetMapping("/{id}")
-    public ApiResponse<Factor> getFactorById(@PathVariable Long id) {
+    public ApiResponse<Factor> getFactor(@PathVariable Long id) {
         return ApiResponse.success(factorService.getFactorById(id));
     }
 
@@ -39,7 +37,27 @@ public class FactorController {
      * 新增因子
      */
     @PostMapping
-    public ApiResponse<Factor> createFactor(@RequestBody Factor factor) {
-        return ApiResponse.success(factorService.createFactor(factor));
+    public ApiResponse<Factor> addFactor(@RequestBody Factor factor) {
+        return ApiResponse.success(factorService.saveFactor(factor));
+    }
+
+    @DeleteMapping("/{id}")
+    public ApiResponse<Void> deleteFactor(@PathVariable Long id) {
+        factorService.deleteFactor(id);
+        return ApiResponse.success();
+    }
+
+    @PutMapping
+    public ApiResponse<Factor> updateFactor(@RequestBody Factor factor) {
+        return ApiResponse.success(factorService.updateFactor(factor));
+    }
+
+    /**
+     * 批量导入因子
+     */
+    @PostMapping("/batch")
+    public ApiResponse<Void> batchImportFactors(@RequestBody List<Factor> factors) {
+        factorService.batchImport(factors);
+        return ApiResponse.success();
     }
 } 

@@ -7,10 +7,11 @@ import java.util.List;
  * 因子树节点业务接口
  */
 public interface FactorTreeNodeService {
-    /** 查询全部节点 */
-    List<FactorTreeNode> getAllNodes();
-    /** 根据ID查询节点 */
-    FactorTreeNode getNodeById(Long id);
-    /** 新增节点 */
-    FactorTreeNode createNode(FactorTreeNode node);
+    FactorTreeNode saveFactorTreeNode(FactorTreeNode node);
+    void deleteFactorTreeNode(Long id);
+    FactorTreeNode updateFactorTreeNode(FactorTreeNode node);
+    FactorTreeNode getFactorTreeNodeById(Long id);
+    List<FactorTreeNode> getAllFactorTreeNodes();
+    List<FactorTreeNode> getNodesByTreeId(Long treeId);
+    void batchImport(List<FactorTreeNode> nodes);
 } 

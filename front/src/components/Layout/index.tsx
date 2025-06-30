@@ -78,6 +78,14 @@ const Layout: React.FC = () => {
           key: '/factors/trees',
           label: '因子树',
         },
+        {
+          key: '/factors/composite-create',
+          label: '创建衍生因子',
+        },
+        {
+          key: '/factors/style-create',
+          label: '创建风格因子',
+        },
       ],
     },
     {

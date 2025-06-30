@@ -144,11 +144,22 @@ export const factorDataApi = {
 export const getFactorTreeList = (params?: QueryParams) => 
   factorTreeApi.getList(params);
 
-export const deleteFactorTree = (id: number) => 
-  factorTreeApi.delete(id);
+export const deleteFactorTree = (id: number) => del(`/factor-trees/${id}`);
 
 export const getFactorList = (params?: QueryParams) => 
   factorApi.getList(params);
 
 export const deleteFactor = (id: number) => 
-  factorApi.delete(id); 
+  factorApi.delete(id);
+
+// 批量导入因子
+export const batchImportFactors = (data: any[]) => post('/factors/batch', data);
+// 批量导入因子树节点
+export const batchImportFactorTreeNodes = (data: any[]) => post('/factor-tree-nodes/batch', data);
+
+// 获取因子树及节点和因子
+export const getFactorTreeWithNodesList = () => get('/factor-trees/with-nodes');
+// 创建因子树及节点
+export const createFactorTreeWithNodes = (data: any) => post('/factor-trees/with-nodes', data);
+// 编辑因子树及节点
+export const updateFactorTreeWithNodes = (data: any) => put('/factor-trees/with-nodes', data); 
