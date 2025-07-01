@@ -114,4 +114,8 @@ public interface FactorService {
      * 保存因子数据
      */
     FactorData saveFactorData(FactorData factorData);
+
+    Factor saveFactor(Factor factor);
+
+    void batchImport(List<Factor> factors);
 } 

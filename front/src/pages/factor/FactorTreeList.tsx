@@ -1,147 +1,161 @@
-import React, { useState, useEffect } from 'react';
-import { Table, Card, Button, Space, Tag, Modal, message, Tree, Input } from 'antd';
-import { PlusOutlined, EditOutlined, DeleteOutlined, SearchOutlined } from '@ant-design/icons';
-import { getFactorTreeList, deleteFactorTree } from '../../api/factor';
-import type { FactorTree } from '../../types';
-
-const { Search } = Input;
+import React, { useEffect, useState } from 'react';
+import { Table, Button, Modal, Input, Select, Tag, message, Popconfirm } from 'antd';
+import { getFactorTreeWithNodesList, createFactorTreeWithNodes, updateFactorTreeWithNodes, deleteFactorTree } from '../../api/factor';
+import { getFactorList } from '../../api/factor';
+import type { Factor } from '../../types';
+import { useNavigate } from 'react-router-dom';
 
 const FactorTreeList: React.FC = () => {
+  const [trees, setTrees] = useState<any[]>([]);
+  const [factors, setFactors] = useState<Factor[]>([]);
+  const [modalOpen, setModalOpen] = useState(false);
+  const [editTree, setEditTree] = useState<any>(null);
+  const [treeName, setTreeName] = useState('');
+  const [treeDesc, setTreeDesc] = useState('');
+  const [selectedFactors, setSelectedFactors] = useState<number[]>([]);
   const [loading, setLoading] = useState(false);
-  const [dataSource, setDataSource] = useState<FactorTree[]>([]);
-  const [searchText, setSearchText] = useState('');
+  const [selectedRowKey, setSelectedRowKey] = useState<number | undefined>();
 
-  const fetchData = async () => {
+  const navigate = useNavigate();
+
+  const fetchAll = async () => {
     setLoading(true);
-    try {
-      const response = await getFactorTreeList();
-      if (response.data.code === 200) {
-        setDataSource(response.data.data.content || response.data.data);
-      }
-    } catch (error) {
-      message.error('获取因子树列表失败');
-    } finally {
-      setLoading(false);
-    }
+    const [treeRes, factorRes] = await Promise.all([
+      getFactorTreeWithNodesList(),
+      getFactorList()
+    ]);
+    setTrees(treeRes.data?.data || []);
+    setFactors(factorRes.data?.data?.content || factorRes.data?.data || []);
+    setLoading(false);
   };
 
   useEffect(() => {
-    fetchData();
+    fetchAll();
   }, []);
 
-  const handleDelete = (id: number) => {
-    Modal.confirm({
-      title: '确认删除',
-      content: '确定要删除这个因子树吗？',
-      onOk: async () => {
-        try {
-          const response = await deleteFactorTree(id);
-          if (response.data.code === 200) {
-            message.success('删除成功');
-            fetchData();
-          }
-        } catch (error) {
-          message.error('删除失败');
-        }
-      },
-    });
+  const openModal = (tree?: any) => {
+    if (tree) {
+      setEditTree(tree);
+      setTreeName(tree.tree.treeName);
+      setTreeDesc(tree.tree.treeDescription || '');
+      setSelectedFactors(tree.nodes.map((n: any) => n.factorId).filter(Boolean));
+    } else {
+      setEditTree(null);
+      setTreeName('');
+      setTreeDesc('');
+      setSelectedFactors([]);
+    }
+    setModalOpen(true);
   };
 
-  const columns = [
-    {
-      title: 'ID',
-      dataIndex: 'id',
-      key: 'id',
-      width: 80,
-    },
-    {
-      title: '因子树名称',
-      dataIndex: 'treeName',
-      key: 'treeName',
-    },
-    {
-      title: '描述',
-      dataIndex: 'treeDescription',
-      key: 'treeDescription',
-      ellipsis: true,
-    },
-    {
-      title: '状态',
-      dataIndex: 'status',
-      key: 'status',
-      render: (status: string) => (
-        <Tag color={status === 'ACTIVE' ? 'green' : 'red'}>
-          {status === 'ACTIVE' ? '启用' : '禁用'}
-        </Tag>
-      ),
-    },
-    {
-      title: '创建时间',
-      dataIndex: 'createdAt',
-      key: 'createdAt',
-      render: (date: string) => new Date(date).toLocaleString(),
-    },
-    {
-      title: '操作',
-      key: 'action',
-      width: 200,
-      render: (_: any, record: FactorTree) => (
-        <Space size="middle">
-          <Button 
-            type="link" 
-            icon={<EditOutlined />}
-            onClick={() => window.location.href = `/factor/tree/edit/${record.id}`}
-          >
-            编辑
-          </Button>
-          <Button 
-            type="link" 
-            danger 
-            icon={<DeleteOutlined />}
-            onClick={() => handleDelete(record.id)}
-          >
-            删除
-          </Button>
-        </Space>
-      ),
-    },
-  ];
+  const handleOk = async () => {
+    if (!treeName) {
+      message.error('请输入因子树名称');
+      return;
+    }
+    const nodes = selectedFactors.map(fid => ({ factorId: fid, nodeName: factors.find(f => f.id === fid)?.factorName || '', nodeType: '因子', status: 'active' }));
+    const vo = {
+      tree: {
+        id: editTree?.tree?.id,
+        treeName,
+        treeDescription: treeDesc,
+        status: 'active'
+      },
+      nodes
+    };
+    if (editTree) {
+      await updateFactorTreeWithNodes(vo);
+      message.success('编辑成功');
+    } else {
+      await createFactorTreeWithNodes(vo);
+      message.success('创建成功');
+    }
+    setModalOpen(false);
+    fetchAll();
+  };
 
-  const filteredData = dataSource.filter(item =>
-    item.treeName.toLowerCase().includes(searchText.toLowerCase()) ||
-    (item.treeDescription && item.treeDescription.toLowerCase().includes(searchText.toLowerCase()))
-  );
+  const handleDelete = async (id: number) => {
+    await deleteFactorTree(id);
+    message.success('删除成功');
+    fetchAll();
+  };
 
   return (
-    <Card title="因子树管理" extra={
-      <Space>
-        <Search
-          placeholder="搜索因子树"
+    <div>
+      <div style={{marginBottom: 16, display: 'flex', alignItems: 'center', gap: 16}}>
+        <Select
+          style={{width: 300}}
+          placeholder="选择因子树"
+          value={selectedRowKey}
+          onChange={id => setSelectedRowKey(Number(id))}
           allowClear
-          onSearch={setSearchText}
-          style={{ width: 200 }}
-        />
-        <Button 
-          type="primary" 
-          icon={<PlusOutlined />}
-          onClick={() => window.location.href = '/factor/tree/add'}
         >
-          新增因子树
-        </Button>
-      </Space>
-    }>
+          {trees.map(tree => (
+            <Select.Option key={tree.tree.id} value={tree.tree.id}>
+              {tree.tree.treeName}
+            </Select.Option>
+          ))}
+        </Select>
+        <Button type="primary" onClick={() => navigate('/factor/tree/create')}>新增因子树</Button>
+      </div>
       <Table
-        columns={columns}
-        dataSource={filteredData}
-        loading={loading}
-        rowKey="id"
-        pagination={{
-          showSizeChanger: true,
-          showQuickJumper: true,
-          showTotal: (total) => `共 ${total} 条记录`,
+        rowKey={r => r.tree.id}
+        rowSelection={{
+          type: 'radio',
+          selectedRowKeys: selectedRowKey ? [selectedRowKey] : [],
+          onChange: (keys) => setSelectedRowKey(Number(keys[0]))
         }}
+        columns={[
+          { title: '因子树名称', dataIndex: ['tree', 'treeName'] },
+          { title: '描述', dataIndex: ['tree', 'treeDescription'] },
+          { title: '包含因子', dataIndex: 'factors', render: (factors: any[], record: any) => {
+            const unique = new Map();
+            (factors || []).forEach(f => unique.set(f.id, f));
+            return Array.from(unique.values()).map(f => (
+              <Tag key={`${record.tree.id}-${f.id}`}>{f.factorName}</Tag>
+            ));
+          } },
+          { title: '操作', render: (_: any, row: any) => <>
+            <Button size="small" onClick={() => openModal(row)}>编辑</Button>
+            <Popconfirm title="确定删除该因子树吗？" onConfirm={() => handleDelete(row.tree.id)}>
+              <Button size="small" danger style={{marginLeft: 8}}>删除</Button>
+            </Popconfirm>
+          </> }
+        ]}
+        dataSource={trees}
+        loading={loading}
+        pagination={false}
+        size="small"
       />
-    </Card>
+      <Button
+        type="primary"
+        disabled={!selectedRowKey}
+        style={{margin: '16px 0'}}
+        onClick={() => selectedRowKey && navigate(`/factor/tree/${selectedRowKey}`)}
+      >
+        查看详情
+      </Button>
+      <Modal
+        open={modalOpen}
+        title={editTree ? '编辑因子树' : '新增因子树'}
+        onOk={handleOk}
+        onCancel={() => setModalOpen(false)}
+        destroyOnClose
+      >
+        <Input placeholder="因子树名称" value={treeName} onChange={e => setTreeName(e.target.value)} style={{marginBottom: 12}} />
+        <Input placeholder="描述" value={treeDesc} onChange={e => setTreeDesc(e.target.value)} style={{marginBottom: 12}} />
+        <Select
+          mode="multiple"
+          style={{width: '100%'}}
+          placeholder="选择因子"
+          value={selectedFactors}
+          onChange={setSelectedFactors}
+          optionFilterProp="children"
+        >
+          {factors.map(f => <Select.Option key={f.id} value={f.id}>{f.factorName}</Select.Option>)}
+        </Select>
+      </Modal>
+    </div>
   );
 };
 

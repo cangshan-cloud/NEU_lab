@@ -20,6 +20,11 @@ import TradeRecordList from '../pages/trade/TradeRecordList';
 import UserPositionList from '../pages/trade/UserPositionList';
 import CapitalFlowList from '../pages/trade/CapitalFlowList';
 import ProductAdd from '../pages/product/ProductAdd';
+import FundPortfolioList from '../pages/fund/FundPortfolioList';
+import FactorCompositeCreate from '../pages/factor/FactorCompositeCreate';
+import StyleFactorCreate from '../pages/factor/StyleFactorCreate';
+import FactorTreeCreate from '../pages/factor/FactorTreeCreate';
+import FactorTreeDetail from '../pages/factor/FactorTreeDetail';
 
 // 路由配置
 export const router = createBrowserRouter([
@@ -39,6 +44,7 @@ export const router = createBrowserRouter([
           { path: ':id', element: <FundDetail /> },
           { path: 'companies', element: <FundCompanyList /> },
           { path: 'managers', element: <FundManagerList /> },
+          { path: 'portfolios', element: <FundPortfolioList /> },
         ],
       },
       // 因子管理子系统
@@ -48,6 +54,8 @@ export const router = createBrowserRouter([
           { index: true, element: <FactorList /> },
           { path: ':id', element: <FactorDetail /> },
           { path: 'trees', element: <FactorTreeList /> },
+          { path: 'composite-create', element: <FactorCompositeCreate /> },
+          { path: 'style-create', element: <StyleFactorCreate /> },
         ],
       },
       // 策略管理子系统
@@ -81,6 +89,14 @@ export const router = createBrowserRouter([
       {
         path: '/product/add',
         element: <ProductAdd />
+      },
+      {
+        path: '/factor/tree/create',
+        element: <FactorTreeCreate />
+      },
+      {
+        path: '/factor/tree/:id',
+        element: <FactorTreeDetail />
       },
     ],
   },

@@ -18,6 +18,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+import java.util.Optional;
 
 /**
  * 因子服务实现类
@@ -49,7 +50,8 @@ public class FactorServiceImpl implements FactorService {
 
     @Override
     public Factor getFactorById(Long id) {
-        return factorRepository.findById(id).orElse(null);
+        Optional<Factor> factor = factorRepository.findById(id);
+        return factor.orElse(null);
     }
 
     @Override
@@ -124,13 +126,6 @@ public class FactorServiceImpl implements FactorService {
     @Override
     public Factor createDerivedFactor(Map<String, Object> factorConfig) {
         Factor factor = new Factor();
-        factor.setName((String) factorConfig.get("name"));
-        factor.setCategory("DERIVED");
-        factor.setType("DERIVED");
-        factor.setDescription((String) factorConfig.get("description"));
-        factor.setCalculationFormula((String) factorConfig.get("formula"));
-        factor.setDataSource("DERIVED");
-        factor.setUpdateFrequency("DAILY");
         factor.setStatus("ACTIVE");
         
         return createFactor(factor);
@@ -139,13 +134,6 @@ public class FactorServiceImpl implements FactorService {
     @Override
     public Factor createStyleFactor(Map<String, Object> factorConfig) {
         Factor factor = new Factor();
-        factor.setName((String) factorConfig.get("name"));
-        factor.setCategory("STYLE");
-        factor.setType("STYLE");
-        factor.setDescription((String) factorConfig.get("description"));
-        factor.setCalculationFormula((String) factorConfig.get("formula"));
-        factor.setDataSource("STYLE");
-        factor.setUpdateFrequency("DAILY");
         factor.setStatus("ACTIVE");
         
         return createFactor(factor);
@@ -156,7 +144,6 @@ public class FactorServiceImpl implements FactorService {
         try {
             // 这里实现因子数据接入逻辑
             // 支持配置化数据接入和Python脚本方式
-            String dataSource = (String) importConfig.get("dataSource");
             String importType = (String) importConfig.get("importType");
             
             if ("PYTHON_SCRIPT".equals(importType)) {
@@ -202,5 +189,15 @@ public class FactorServiceImpl implements FactorService {
         // 这里实现配置化数据接入逻辑
         // 支持多种数据源：数据库、API、文件等
         return true;
+    }
+
+    @Override
+    public Factor saveFactor(Factor factor) {
+        return factorRepository.save(factor);
+    }
+
+    @Override
+    public void batchImport(List<Factor> factors) {
+        factorRepository.saveAll(factors);
     }
 } 

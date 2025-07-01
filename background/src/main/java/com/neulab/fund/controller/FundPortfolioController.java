@@ -1,7 +1,7 @@
 package com.neulab.fund.controller;
 
 import com.neulab.fund.entity.FundPortfolio;
-import com.neulab.fund.service.FundPortfolioService;
+import com.neulab.fund.repository.FundPortfolioRepository;
 import com.neulab.fund.vo.ApiResponse;
 import org.springframework.web.bind.annotation.*;
 
@@ -13,10 +13,10 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/fund-portfolios")
 public class FundPortfolioController {
-    private final FundPortfolioService fundPortfolioService;
+    private final FundPortfolioRepository fundPortfolioRepository;
 
-    public FundPortfolioController(FundPortfolioService fundPortfolioService) {
-        this.fundPortfolioService = fundPortfolioService;
+    public FundPortfolioController(FundPortfolioRepository fundPortfolioRepository) {
+        this.fundPortfolioRepository = fundPortfolioRepository;
     }
 
     /**
@@ -24,7 +24,7 @@ public class FundPortfolioController {
      */
     @GetMapping
     public ApiResponse<List<FundPortfolio>> getAllPortfolios() {
-        return ApiResponse.success(fundPortfolioService.getAllPortfolios());
+        return ApiResponse.success(fundPortfolioRepository.findAll());
     }
 
     /**
@@ -32,7 +32,7 @@ public class FundPortfolioController {
      */
     @GetMapping("/{id}")
     public ApiResponse<FundPortfolio> getPortfolioById(@PathVariable Long id) {
-        return ApiResponse.success(fundPortfolioService.getPortfolioById(id));
+        return ApiResponse.success(fundPortfolioRepository.findById(id).orElse(null));
     }
 
     /**
@@ -40,6 +40,12 @@ public class FundPortfolioController {
      */
     @PostMapping
     public ApiResponse<FundPortfolio> createPortfolio(@RequestBody FundPortfolio portfolio) {
-        return ApiResponse.success(fundPortfolioService.createPortfolio(portfolio));
+        return ApiResponse.success(fundPortfolioRepository.save(portfolio));
+    }
+
+    @DeleteMapping("/{id}")
+    public ApiResponse<Void> deletePortfolio(@PathVariable Long id) {
+        fundPortfolioRepository.deleteById(id);
+        return ApiResponse.success(null);
     }
 } 

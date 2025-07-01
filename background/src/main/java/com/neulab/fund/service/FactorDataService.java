@@ -7,10 +7,10 @@ import java.util.List;
  * 因子数据业务接口
  */
 public interface FactorDataService {
-    /** 查询全部因子数据 */
-    List<FactorData> getAllData();
-    /** 根据ID查询因子数据 */
-    FactorData getDataById(Long id);
-    /** 新增因子数据 */
-    FactorData createData(FactorData data);
+    FactorData saveFactorData(FactorData factorData);
+    void deleteFactorData(Long id);
+    FactorData updateFactorData(FactorData factorData);
+    FactorData getFactorDataById(Long id);
+    List<FactorData> getAllFactorData();
+    List<FactorData> getDataByFactorId(Long factorId);
 } 

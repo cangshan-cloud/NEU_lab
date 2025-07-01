@@ -4,6 +4,7 @@ import com.neulab.fund.entity.FactorData;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
+import java.time.LocalDate;
 import java.util.List;
 
 /**
@@ -25,5 +26,5 @@ public interface FactorDataRepository extends JpaRepository<FactorData, Long> {
     /**
      * 根据因子ID和日期查询数据
      */
-    List<FactorData> findByFactorIdAndDataDate(Long factorId, String dataDate);
+    List<FactorData> findByFactorIdAndDataDate(Long factorId, LocalDate dataDate);
 } 

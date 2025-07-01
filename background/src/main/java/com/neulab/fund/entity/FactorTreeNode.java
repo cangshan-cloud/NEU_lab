@@ -20,11 +20,15 @@ public class FactorTreeNode {
     /** 关联因子ID */
     private Long factorId;
     /** 节点名称 */
-    private String name;
+    private String nodeName;
     /** 节点顺序 */
     private Integer nodeOrder;
     /** 节点类型 */
     private String nodeType;
+    /** 权重 */
+    private Double weight;
+    /** 状态 */
+    private String status;
     /** 创建时间 */
     private LocalDateTime createdAt;
     /** 更新时间 */
@@ -39,12 +43,16 @@ public class FactorTreeNode {
     public void setParentId(Long parentId) { this.parentId = parentId; }
     public Long getFactorId() { return factorId; }
     public void setFactorId(Long factorId) { this.factorId = factorId; }
-    public String getName() { return name; }
-    public void setName(String name) { this.name = name; }
+    public String getNodeName() { return nodeName; }
+    public void setNodeName(String nodeName) { this.nodeName = nodeName; }
     public Integer getNodeOrder() { return nodeOrder; }
     public void setNodeOrder(Integer nodeOrder) { this.nodeOrder = nodeOrder; }
     public String getNodeType() { return nodeType; }
     public void setNodeType(String nodeType) { this.nodeType = nodeType; }
+    public Double getWeight() { return weight; }
+    public void setWeight(Double weight) { this.weight = weight; }
+    public String getStatus() { return status; }
+    public void setStatus(String status) { this.status = status; }
     public LocalDateTime getCreatedAt() { return createdAt; }
     public void setCreatedAt(LocalDateTime createdAt) { this.createdAt = createdAt; }
     public LocalDateTime getUpdatedAt() { return updatedAt; }
