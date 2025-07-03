@@ -7,7 +7,7 @@ import java.time.LocalDateTime;
  * 择时组合实体
  */
 @Entity
-@Table(name = "timing_portfolio")
+@Table(name = "`timing_portfolio`")
 public class TimingPortfolio {
     /** 主键ID */
     @Id

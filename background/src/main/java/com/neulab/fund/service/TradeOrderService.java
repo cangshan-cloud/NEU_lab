@@ -1,6 +1,9 @@
 package com.neulab.fund.service;
 
 import com.neulab.fund.entity.TradeOrder;
+import com.neulab.fund.vo.rebalance.RebalanceRequest;
+import com.neulab.fund.vo.rebalance.ErrorHandlingRequest;
+import com.neulab.fund.vo.rebalance.AccountRebalanceRequest;
 import java.util.List;
 import java.util.Optional;
 
@@ -73,4 +76,29 @@ public interface TradeOrderService {
      * 统计用户成功订单数量
      */
     long countSuccessByUserId(Long userId);
+    
+    /**
+     * 组合调仓：为持有指定组合的所有用户批量生成调仓交易单
+     */
+    List<TradeOrder> rebalancePortfolio(RebalanceRequest request);
+
+    /**
+     * 差错处理：为失败交割单指定替代标的并重新生成交易单
+     */
+    void handleError(ErrorHandlingRequest request);
+
+    /**
+     * 账户调仓：为指定客户单独调仓，生成调仓交易单
+     */
+    List<TradeOrder> accountRebalance(AccountRebalanceRequest request);
+
+    /**
+     * 批量下发交易单
+     */
+    void batchSubmit(List<Long> orderIds);
+
+    /**
+     * 批量驳回交易单
+     */
+    void batchReject(List<Long> orderIds);
 } 

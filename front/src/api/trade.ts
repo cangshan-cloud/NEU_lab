@@ -215,4 +215,41 @@ export const getCapitalFlowList = (params?: QueryParams) =>
   capitalFlowApi.getList(params);
 
 export const deleteCapitalFlow = (id: number) => 
-  capitalFlowApi.delete(id); 
+  capitalFlowApi.delete(id);
+
+export function getDeliveryOrders(params: {
+  userId?: number;
+  productId?: number;
+  status?: string;
+}) {
+  return get<PageResult<TradeOrder>>('/api/delivery-orders', { params });
+}
+
+export function handleTradeError(data: {
+  deliveryOrderId: number;
+  newProductId: number;
+}) {
+  return post<void>('/api/trades/error-handling', data);
+}
+
+export function rebalancePortfolio(data: {
+  portfolioId: number;
+  items: { productId: number; weight: number }[];
+}) {
+  return post<void>('/api/trades/rebalance', data);
+}
+
+export function accountRebalance(data: {
+  userId: number;
+  items: { productId: number; weight: number }[];
+}) {
+  return post<void>('/api/trades/account-rebalance', data);
+}
+
+export function batchSubmitTradeOrders(orderIds: number[]) {
+  return post<void>('/trades/trade-orders/batch-submit', orderIds);
+}
+
+export function batchRejectTradeOrders(orderIds: number[]) {
+  return post<void>('/trades/trade-orders/batch-reject', orderIds);
+} 

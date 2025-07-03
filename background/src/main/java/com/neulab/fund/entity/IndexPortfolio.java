@@ -7,7 +7,7 @@ import java.time.LocalDateTime;
  * 基金指数组合实体
  */
 @Entity
-@Table(name = "index_portfolio")
+@Table(name = "`index_portfolio`")
 public class IndexPortfolio {
     /** 主键ID */
     @Id

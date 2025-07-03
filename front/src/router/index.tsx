@@ -1,5 +1,5 @@
 import React from 'react';
-import { createBrowserRouter, Navigate } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, Navigate, Outlet } from 'react-router-dom';
 import Layout from '../components/Layout';
 import Dashboard from '../pages/Dashboard';
 import FundList from '../pages/fund/FundList';
@@ -25,81 +25,58 @@ import FactorCompositeCreate from '../pages/factor/FactorCompositeCreate';
 import StyleFactorCreate from '../pages/factor/StyleFactorCreate';
 import FactorTreeCreate from '../pages/factor/FactorTreeCreate';
 import FactorTreeDetail from '../pages/factor/FactorTreeDetail';
+import UserLogin from '../pages/UserLogin';
+import UserRegister from '../pages/UserRegister';
+import UserProfile from '../pages/UserProfile';
+import UserList from '../pages/UserList';
+import AccountRebalance from '../pages/trade/AccountRebalance';
+import TradeErrorList from '../pages/trade/TradeErrorList';
+import DeliveryOrderList from '../pages/trade/DeliveryOrderList';
 
-// 路由配置
-export const router = createBrowserRouter([
-  {
-    path: '/',
-    element: <Layout />,
-    children: [
-      {
-        index: true,
-        element: <Dashboard />,
-      },
-      // 基金研究子系统
-      {
-        path: 'funds',
-        children: [
-          { index: true, element: <FundList /> },
-          { path: ':id', element: <FundDetail /> },
-          { path: 'companies', element: <FundCompanyList /> },
-          { path: 'managers', element: <FundManagerList /> },
-          { path: 'portfolios', element: <FundPortfolioList /> },
-        ],
-      },
-      // 因子管理子系统
-      {
-        path: 'factors',
-        children: [
-          { index: true, element: <FactorList /> },
-          { path: ':id', element: <FactorDetail /> },
-          { path: 'trees', element: <FactorTreeList /> },
-          { path: 'composite-create', element: <FactorCompositeCreate /> },
-          { path: 'style-create', element: <StyleFactorCreate /> },
-        ],
-      },
-      // 策略管理子系统
-      {
-        path: 'strategies',
-        children: [
-          { index: true, element: <StrategyList /> },
-          { path: ':id', element: <StrategyDetail /> },
-          { path: 'backtests', element: <StrategyBacktestList /> },
-        ],
-      },
-      // 组合产品管理子系统
-      {
-        path: 'products',
-        children: [
-          { index: true, element: <ProductList /> },
-          { path: ':id', element: <ProductDetail /> },
-          { path: 'reviews', element: <ProductReviewList /> },
-        ],
-      },
-      // 交易管理子系统
-      {
-        path: 'trades',
-        children: [
-          { path: 'orders', element: <TradeOrderList /> },
-          { path: 'capital-flows', element: <CapitalFlowList /> },
-          { path: 'records', element: <TradeRecordList /> },
-          { path: 'positions', element: <UserPositionList /> },
-        ],
-      },
-      {
-        path: '/product/add',
-        element: <ProductAdd />
-      },
-      {
-        path: '/factor/tree/create',
-        element: <FactorTreeCreate />
-      },
-      {
-        path: '/factor/tree/:id',
-        element: <FactorTreeDetail />
-      },
-    ],
-  },
-]);
+const RequireAuth: React.FC = () => {
+  const token = localStorage.getItem('token');
+  return token ? <Outlet /> : <Navigate to="/login" replace />;
+};
 
-export default router; 
+const Router = () => (
+  <Routes>
+    <Route path="/login" element={<UserLogin />} />
+    <Route path="/register" element={<UserRegister />} />
+    <Route element={<RequireAuth />}>
+      <Route element={<Layout />}>
+        <Route path="/" element={<Dashboard />} />
+        <Route path="profile" element={<UserProfile />} />
+        <Route path="users" element={<UserList />} />
+        <Route path="funds" element={<FundList />} />
+        <Route path="funds/:id" element={<FundDetail />} />
+        <Route path="funds/companies" element={<FundCompanyList />} />
+        <Route path="funds/managers" element={<FundManagerList />} />
+        <Route path="funds/portfolios" element={<FundPortfolioList />} />
+        <Route path="factors" element={<FactorList />} />
+        <Route path="factors/:id" element={<FactorDetail />} />
+        <Route path="factors/trees" element={<FactorTreeList />} />
+        <Route path="factors/composite-create" element={<FactorCompositeCreate />} />
+        <Route path="factors/style-create" element={<StyleFactorCreate />} />
+        <Route path="strategies" element={<StrategyList />} />
+        <Route path="strategies/:id" element={<StrategyDetail />} />
+        <Route path="strategies/backtests" element={<StrategyBacktestList />} />
+        <Route path="products" element={<ProductList />} />
+        <Route path="products/:id" element={<ProductDetail />} />
+        <Route path="products/reviews" element={<ProductReviewList />} />
+        <Route path="trades" element={<TradeOrderList />} />
+        <Route path="trades/capital-flows" element={<CapitalFlowList />} />
+        <Route path="trades/records" element={<TradeRecordList />} />
+        <Route path="trades/positions" element={<UserPositionList />} />
+        <Route path="trades/account-rebalance" element={<AccountRebalance />} />
+        <Route path="trades/errors" element={<TradeErrorList />} />
+        <Route path="trades/delivery-orders" element={<DeliveryOrderList />} />
+        <Route path="product/add" element={<ProductAdd />} />
+        <Route path="factor/tree/create" element={<FactorTreeCreate />} />
+        <Route path="factor/tree/:id" element={<FactorTreeDetail />} />
+      </Route>
+    </Route>
+    <Route path="*" element={<Navigate to="/login" replace />} />
+  </Routes>
+);
+
+export default Router; 

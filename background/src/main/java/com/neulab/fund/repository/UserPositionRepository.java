@@ -60,4 +60,21 @@ public interface UserPositionRepository extends JpaRepository<UserPosition, Long
      */
     @Query("SELECT COALESCE(SUM(u.profitLoss), 0) FROM UserPosition u WHERE u.userId = :userId")
     BigDecimal sumProfitLossByUserId(@Param("userId") Long userId);
+
+    /**
+     * 查询持有某组合的所有用户ID
+     */
+    @Query("SELECT DISTINCT up.userId FROM UserPosition up WHERE up.productId IN (SELECT fp.id FROM FundPortfolio fp WHERE fp.id = :portfolioId)")
+    List<Long> findDistinctUserIdsByPortfolioId(@Param("portfolioId") Long portfolioId);
+
+    /**
+     * 查询某用户在某组合下的所有持仓
+     */
+    @Query("SELECT up FROM UserPosition up WHERE up.userId = :userId AND up.productId IN (SELECT fp.id FROM FundPortfolio fp WHERE fp.id = :portfolioId)")
+    List<UserPosition> findByUserIdAndPortfolioId(@Param("userId") Long userId, @Param("portfolioId") Long portfolioId);
+
+    /**
+     * 查询某用户所有持仓
+     */
+    List<UserPosition> findByUserId(Long userId);
 } 

@@ -157,4 +157,15 @@ export const fundPortfolioApi = {
   // 获取所有组合（不分页）
   getAll: () => 
     get<FundPortfolio[]>('/fund-portfolios/all'),
-}; 
+};
+
+// 获取所有基金组合（不分页）
+export function getPortfolios() {
+  return fundPortfolioApi.getAll();
+}
+
+// 获取所有产品（假设产品API为productApi，若无请后续补充）
+import { productApi } from './product';
+export function getProducts() {
+  return productApi.getAll();
+} 

@@ -8,7 +8,7 @@ import java.time.LocalDateTime;
  * 策略回测实体
  */
 @Entity
-@Table(name = "strategy_backtest")
+@Table(name = "`strategy_backtest`")
 public class StrategyBacktest {
     /** 主键ID */
     @Id

@@ -7,7 +7,7 @@ import java.time.LocalDateTime;
  * 策略实体
  */
 @Entity
-@Table(name = "strategy")
+@Table(name = "`strategy`")
 public class Strategy {
     /** 主键ID */
     @Id

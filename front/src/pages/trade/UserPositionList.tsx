@@ -1,23 +1,67 @@
 import React, { useState, useEffect } from 'react';
-import { Table, Card, Button, Space, Tag, Modal, message, Input } from 'antd';
+import { Table, Card, Button, Space, Tag, Modal, message, Input, Form, Select } from 'antd';
 import { PlusOutlined, EditOutlined, DeleteOutlined, EyeOutlined } from '@ant-design/icons';
 import { getUserPositionList, deleteUserPosition } from '../../api/trade';
 import type { UserPosition } from '../../types';
 
 const { Search } = Input;
 
+const UserPositionModal: React.FC<{
+  open: boolean;
+  mode: 'view' | 'edit';
+  data?: any;
+  onOk?: (values: any) => void;
+  onCancel: () => void;
+}> = ({ open, mode, data, onOk, onCancel }) => {
+  const [form] = Form.useForm();
+  useEffect(() => {
+    if (open) {
+      form.setFieldsValue(data);
+    }
+  }, [open, data, form]);
+  const isView = mode === 'view';
+  return (
+    <Modal
+      open={open}
+      title={isView ? '查看用户持仓' : '编辑用户持仓'}
+      onCancel={onCancel}
+      onOk={isView ? onCancel : () => form.validateFields().then(onOk)}
+      okText={isView ? '关闭' : '保存'}
+      cancelButtonProps={{ style: { display: isView ? 'none' : undefined } }}
+      destroyOnHidden
+    >
+      <Form form={form} layout="vertical" initialValues={data} disabled={isView}>
+        <Form.Item label="用户ID" name="userId"><Input disabled /></Form.Item>
+        <Form.Item label="产品ID" name="productId"><Input disabled /></Form.Item>
+        <Form.Item label="持仓份额" name="shares"><Input type="number" disabled={isView} /></Form.Item>
+        <Form.Item label="持仓成本" name="cost"><Input type="number" disabled={isView} /></Form.Item>
+        <Form.Item label="平均成本价" name="avgCostPrice"><Input type="number" disabled={isView} /></Form.Item>
+        <Form.Item label="当前市值" name="marketValue"><Input type="number" disabled={isView} /></Form.Item>
+        <Form.Item label="浮动盈亏" name="profitLoss"><Input type="number" disabled={isView} /></Form.Item>
+        <Form.Item label="浮动盈亏率" name="profitLossRate"><Input type="number" disabled={isView} /></Form.Item>
+        <Form.Item label="最后更新时间" name="updatedAt"><Input disabled /></Form.Item>
+        <Form.Item label="创建时间" name="createdAt"><Input disabled /></Form.Item>
+      </Form>
+    </Modal>
+  );
+};
+
 const UserPositionList: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [dataSource, setDataSource] = useState<UserPosition[]>([]);
   const [searchText, setSearchText] = useState('');
+  const [total, setTotal] = useState(0);
+  const [modalOpen, setModalOpen] = useState(false);
+  const [modalMode, setModalMode] = useState<'view' | 'edit'>('view');
+  const [modalData, setModalData] = useState<any>(undefined);
 
   const fetchData = async () => {
     setLoading(true);
     try {
-      const response = await getUserPositionList();
-      if (response.data.code === 200) {
-        setDataSource(response.data.data.content || response.data.data);
-      }
+      const res = await getUserPositionList();
+      const list = Array.isArray(res.data.data) ? res.data.data : [];
+      setDataSource(list);
+      setTotal(list.length);
     } catch (error) {
       message.error('获取用户持仓列表失败');
     } finally {
@@ -45,6 +89,17 @@ const UserPositionList: React.FC = () => {
         }
       },
     });
+  };
+
+  const handleView = (record: any) => {
+    setModalData(record);
+    setModalMode('view');
+    setModalOpen(true);
+  };
+  const handleEdit = (record: any) => {
+    setModalData(record);
+    setModalMode('edit');
+    setModalOpen(true);
   };
 
   const columns = [
@@ -120,19 +175,19 @@ const UserPositionList: React.FC = () => {
       title: '操作',
       key: 'action',
       width: 200,
-      render: (_: any, record: UserPosition) => (
+      render: (_: any, record: any) => (
         <Space size="middle">
           <Button 
             type="link" 
             icon={<EyeOutlined />}
-            onClick={() => window.location.href = `/trade/position/detail/${record.id}`}
+            onClick={() => handleView(record)}
           >
             查看
           </Button>
           <Button 
             type="link" 
             icon={<EditOutlined />}
-            onClick={() => window.location.href = `/trade/position/edit/${record.id}`}
+            onClick={() => handleEdit(record)}
           >
             编辑
           </Button>
@@ -166,12 +221,12 @@ const UserPositionList: React.FC = () => {
         <Button 
           type="primary" 
           icon={<PlusOutlined />}
-          onClick={() => window.location.href = '/trade/position/add'}
+          onClick={() => { setModalData(undefined); setModalMode('edit'); setModalOpen(true); }}
         >
           新增持仓
         </Button>
       </Space>
-    }>
+    } style={{ maxWidth: 1200, margin: '0 auto' }}>
       <Table
         columns={columns}
         dataSource={filteredData}
@@ -182,6 +237,18 @@ const UserPositionList: React.FC = () => {
           showQuickJumper: true,
           showTotal: (total) => `共 ${total} 条记录`,
         }}
+        scroll={{ x: 1400 }}
+      />
+      <UserPositionModal
+        open={modalOpen}
+        mode={modalMode}
+        data={modalData}
+        onOk={(values) => {
+          // TODO: 实现保存逻辑
+          setModalOpen(false);
+          fetchData();
+        }}
+        onCancel={() => setModalOpen(false)}
       />
     </Card>
   );

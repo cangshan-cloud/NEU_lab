@@ -1,14 +1,26 @@
 import React from 'react';
-import { RouterProvider } from 'react-router-dom';
 import { ConfigProvider } from 'antd';
 import zhCN from 'antd/locale/zh_CN';
-import router from './router';
+import Router from './router';
 import './App.css';
+import { BrowserRouter, useLocation } from 'react-router-dom';
+
+const AppContent: React.FC = () => {
+  const location = useLocation();
+  const isAuthPage = location.pathname === '/login' || location.pathname === '/register';
+  return (
+    <div className={isAuthPage ? 'auth-root' : 'main-root'}>
+      <Router />
+    </div>
+  );
+};
 
 const App: React.FC = () => {
   return (
     <ConfigProvider locale={zhCN}>
-      <RouterProvider router={router} />
+      <BrowserRouter>
+        <AppContent />
+      </BrowserRouter>
     </ConfigProvider>
   );
 };

@@ -1,23 +1,83 @@
 import React, { useState, useEffect } from 'react';
-import { Table, Card, Button, Space, Tag, Modal, message, Input } from 'antd';
+import { Table, Card, Button, Space, Tag, Modal, message, Input, Form, Select } from 'antd';
 import { PlusOutlined, EditOutlined, DeleteOutlined, EyeOutlined } from '@ant-design/icons';
 import { getCapitalFlowList, deleteCapitalFlow } from '../../api/trade';
 import type { CapitalFlow } from '../../types';
 
 const { Search } = Input;
 
+const statusMap: Record<string, string> = {
+  SUCCESS: '成功',
+  FAILED: '失败',
+  PENDING: '处理中',
+  REJECTED: '已驳回',
+};
+
+const CapitalFlowModal: React.FC<{
+  open: boolean;
+  mode: 'view' | 'edit';
+  data?: any;
+  onOk?: (values: any) => void;
+  onCancel: () => void;
+}> = ({ open, mode, data, onOk, onCancel }) => {
+  const [form] = Form.useForm();
+  React.useEffect(() => {
+    if (open) {
+      form.setFieldsValue(data);
+    }
+  }, [open, data, form]);
+  const isView = mode === 'view';
+  return (
+    <Modal
+      open={open}
+      title={isView ? '查看资金流水' : '编辑资金流水'}
+      onCancel={onCancel}
+      onOk={isView ? onCancel : () => form.validateFields().then(onOk)}
+      okText={isView ? '关闭' : '保存'}
+      cancelButtonProps={{ style: { display: isView ? 'none' : undefined } }}
+      destroyOnHidden
+    >
+      <Form form={form} layout="vertical" initialValues={data} disabled={isView}>
+        <Form.Item label="流水号" name="flowNo"><Input disabled /></Form.Item>
+        <Form.Item label="用户ID" name="userId"><Input disabled /></Form.Item>
+        <Form.Item label="流水类型" name="flowType"><Select disabled={isView} options={[
+          { value: 'DEPOSIT', label: '充值' },
+          { value: 'WITHDRAW', label: '提现' },
+          { value: 'BUY', label: '买入' },
+          { value: 'SELL', label: '卖出' },
+          { value: 'FEE', label: '手续费' },
+          { value: 'DIVIDEND', label: '分红' },
+        ]} /></Form.Item>
+        <Form.Item label="金额" name="amount"><Input type="number" disabled={isView} /></Form.Item>
+        <Form.Item label="变动前余额" name="balanceBefore"><Input type="number" disabled={isView} /></Form.Item>
+        <Form.Item label="变动后余额" name="balanceAfter"><Input type="number" disabled={isView} /></Form.Item>
+        <Form.Item label="订单ID" name="orderId"><Input disabled /></Form.Item>
+        <Form.Item label="产品ID" name="productId"><Input disabled /></Form.Item>
+        <Form.Item label="流水状态" name="status"><Select disabled={isView} options={Object.entries(statusMap).map(([value, label]) => ({ value, label }))} /></Form.Item>
+        <Form.Item label="备注" name="remark"><Input.TextArea disabled={isView} /></Form.Item>
+        <Form.Item label="流水时间" name="flowTime"><Input disabled /></Form.Item>
+        <Form.Item label="创建时间" name="createdAt"><Input disabled /></Form.Item>
+      </Form>
+    </Modal>
+  );
+};
+
 const CapitalFlowList: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [dataSource, setDataSource] = useState<CapitalFlow[]>([]);
   const [searchText, setSearchText] = useState('');
+  const [total, setTotal] = useState(0);
+  const [modalOpen, setModalOpen] = useState(false);
+  const [modalMode, setModalMode] = useState<'view' | 'edit'>('view');
+  const [modalData, setModalData] = useState<any>(undefined);
 
   const fetchData = async () => {
     setLoading(true);
     try {
-      const response = await getCapitalFlowList();
-      if (response.data.code === 200) {
-        setDataSource(response.data.data.content || response.data.data);
-      }
+      const res = await getCapitalFlowList();
+      const list = Array.isArray(res.data.data) ? res.data.data : [];
+      setDataSource(list);
+      setTotal(list.length);
     } catch (error) {
       message.error('获取资金流水列表失败');
     } finally {
@@ -45,6 +105,17 @@ const CapitalFlowList: React.FC = () => {
         }
       },
     });
+  };
+
+  const handleView = (record: any) => {
+    setModalData(record);
+    setModalMode('view');
+    setModalOpen(true);
+  };
+  const handleEdit = (record: any) => {
+    setModalData(record);
+    setModalMode('edit');
+    setModalOpen(true);
   };
 
   const columns = [
@@ -128,14 +199,15 @@ const CapitalFlowList: React.FC = () => {
       key: 'status',
       render: (status: string) => {
         const colorMap: Record<string, string> = {
-          'SUCCESS': 'green',
-          'FAILED': 'red',
-          'PENDING': 'orange',
+          SUCCESS: 'green',
+          FAILED: 'red',
+          PENDING: 'orange',
         };
         const statusMap: Record<string, string> = {
-          'SUCCESS': '成功',
-          'FAILED': '失败',
-          'PENDING': '处理中',
+          SUCCESS: '成功',
+          FAILED: '失败',
+          PENDING: '处理中',
+          REJECTED: '已驳回',
         };
         return <Tag color={colorMap[status] || 'default'}>{statusMap[status] || status}</Tag>;
       },
@@ -150,19 +222,19 @@ const CapitalFlowList: React.FC = () => {
       title: '操作',
       key: 'action',
       width: 200,
-      render: (_: any, record: CapitalFlow) => (
+      render: (_: any, record: any) => (
         <Space size="middle">
           <Button 
             type="link" 
             icon={<EyeOutlined />}
-            onClick={() => window.location.href = `/trade/flow/detail/${record.id}`}
+            onClick={() => handleView(record)}
           >
             查看
           </Button>
           <Button 
             type="link" 
             icon={<EditOutlined />}
-            onClick={() => window.location.href = `/trade/flow/edit/${record.id}`}
+            onClick={() => handleEdit(record)}
           >
             编辑
           </Button>
@@ -197,12 +269,12 @@ const CapitalFlowList: React.FC = () => {
         <Button 
           type="primary" 
           icon={<PlusOutlined />}
-          onClick={() => window.location.href = '/trade/flow/add'}
+          onClick={() => { setModalData(undefined); setModalMode('edit'); setModalOpen(true); }}
         >
           新增流水
         </Button>
       </Space>
-    }>
+    } style={{ maxWidth: 1200, margin: '0 auto' }}>
       <Table
         columns={columns}
         dataSource={filteredData}
@@ -213,6 +285,18 @@ const CapitalFlowList: React.FC = () => {
           showQuickJumper: true,
           showTotal: (total) => `共 ${total} 条记录`,
         }}
+        scroll={{ x: 1400 }}
+      />
+      <CapitalFlowModal
+        open={modalOpen}
+        mode={modalMode}
+        data={modalData}
+        onOk={(values) => {
+          // TODO: 实现保存逻辑
+          setModalOpen(false);
+          fetchData();
+        }}
+        onCancel={() => setModalOpen(false)}
       />
     </Card>
   );

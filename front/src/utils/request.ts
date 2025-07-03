@@ -12,13 +12,13 @@ const request = axios.create({
   },
 });
 
-// 请求拦截器
+// 请求拦截器：自动携带token
 request.interceptors.request.use(
   (config) => {
-    // 可以在这里添加token等认证信息
     const token = localStorage.getItem('token');
     if (token) {
-      config.headers.Authorization = `Bearer ${token}`;
+      config.headers = config.headers || {};
+      config.headers['Authorization'] = `Bearer ${token}`;
     }
     return config;
   },

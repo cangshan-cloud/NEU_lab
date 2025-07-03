@@ -7,7 +7,7 @@ import java.time.LocalDateTime;
  * 组合产品实体
  */
 @Entity
-@Table(name = "product")
+@Table(name = "`product`")
 public class Product {
     /** 主键ID */
     @Id

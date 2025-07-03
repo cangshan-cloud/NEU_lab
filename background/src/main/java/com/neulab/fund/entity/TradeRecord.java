@@ -11,7 +11,7 @@ import java.time.LocalDateTime;
  */
 @Data
 @Entity
-@Table(name = "trade_record")
+@Table(name = "`trade_record`")
 public class TradeRecord {
     
     /**

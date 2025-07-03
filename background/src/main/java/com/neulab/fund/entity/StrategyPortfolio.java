@@ -1,59 +1,50 @@
 package com.neulab.fund.entity;
 
 import jakarta.persistence.*;
-import lombok.Data;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 /**
- * 策略组合关联实体类
- * 管理策略与组合的关联关系
+ * 策略组合关联实体
  */
-@Data
 @Entity
 @Table(name = "strategy_portfolio")
 public class StrategyPortfolio {
-    
-    /**
-     * 主键ID
-     */
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-    
-    /**
-     * 策略ID
-     */
+
     @Column(name = "strategy_id", nullable = false)
     private Long strategyId;
-    
-    /**
-     * 组合ID
-     */
+
     @Column(name = "portfolio_id", nullable = false)
     private Long portfolioId;
-    
-    /**
-     * 权重
-     */
-    @Column(name = "weight", precision = 5, scale = 4)
+
+    @Column(name = "weight")
     private BigDecimal weight;
-    
-    /**
-     * 状态：ACTIVE-正常，INACTIVE-停用
-     */
-    @Column(name = "status", length = 20)
+
+    @Column(name = "status")
     private String status;
-    
-    /**
-     * 创建时间
-     */
-    @Column(name = "created_at", nullable = false)
+
+    @Column(name = "created_at")
     private LocalDateTime createdAt;
-    
-    /**
-     * 更新时间
-     */
+
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
+
+    // getter/setter
+    public Long getId() { return id; }
+    public void setId(Long id) { this.id = id; }
+    public Long getStrategyId() { return strategyId; }
+    public void setStrategyId(Long strategyId) { this.strategyId = strategyId; }
+    public Long getPortfolioId() { return portfolioId; }
+    public void setPortfolioId(Long portfolioId) { this.portfolioId = portfolioId; }
+    public BigDecimal getWeight() { return weight; }
+    public void setWeight(BigDecimal weight) { this.weight = weight; }
+    public String getStatus() { return status; }
+    public void setStatus(String status) { this.status = status; }
+    public LocalDateTime getCreatedAt() { return createdAt; }
+    public void setCreatedAt(LocalDateTime createdAt) { this.createdAt = createdAt; }
+    public LocalDateTime getUpdatedAt() { return updatedAt; }
+    public void setUpdatedAt(LocalDateTime updatedAt) { this.updatedAt = updatedAt; }
 } 

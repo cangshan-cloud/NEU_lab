@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { Outlet, Link, useLocation } from 'react-router-dom';
+import type { PropsWithChildren } from 'react';
+import { Outlet, Link, useLocation, useNavigate } from 'react-router-dom';
 import {
   Layout as AntLayout,
   Menu,
@@ -28,12 +29,15 @@ import './index.css';
 const { Header, Sider, Content } = AntLayout;
 const { Title } = Typography;
 
-const Layout: React.FC = () => {
+const Layout: React.FC<PropsWithChildren> = ({ children }) => {
   const [collapsed, setCollapsed] = useState(false);
   const location = useLocation();
+  const navigate = useNavigate();
   const {
     token: { colorBgContainer, borderRadiusLG },
   } = theme.useToken();
+
+  const user = localStorage.getItem('user') ? JSON.parse(localStorage.getItem('user')!) : null;
 
   // 菜单配置
   const menuItems = [
@@ -124,7 +128,7 @@ const Layout: React.FC = () => {
       label: '交易管理',
       children: [
         {
-          key: '/trades/orders',
+          key: '/trades',
           label: '交易单',
         },
         {
@@ -149,11 +153,6 @@ const Layout: React.FC = () => {
       key: 'profile',
       icon: <UserOutlined />,
       label: '个人中心',
-    },
-    {
-      key: 'settings',
-      icon: <SettingOutlined />,
-      label: '系统设置',
     },
     {
       type: 'divider' as const,
@@ -193,6 +192,12 @@ const Layout: React.FC = () => {
     return keys;
   };
 
+  const handleLogout = () => {
+    localStorage.removeItem('token');
+    localStorage.removeItem('user');
+    navigate('/login');
+  };
+
   return (
     <AntLayout style={{ minHeight: '100vh' }}>
       <Sider trigger={null} collapsible collapsed={collapsed} theme="dark">
@@ -228,10 +233,19 @@ const Layout: React.FC = () => {
             />
             <Space size="large">
               <Button type="text" icon={<BellOutlined />} />
-              <Dropdown menu={{ items: userMenuItems }} placement="bottomRight">
+              <Dropdown 
+                menu={{ 
+                  items: userMenuItems,
+                  onClick: ({ key }) => {
+                    if (key === 'profile') navigate('/profile');
+                    else if (key === 'logout') handleLogout();
+                  }
+                }} 
+                placement="bottomRight"
+              >
                 <Space style={{ cursor: 'pointer' }}>
                   <Avatar icon={<UserOutlined />} />
-                  <span>管理员</span>
+                  <span>{user ? user.username : '登录'}</span>
                 </Space>
               </Dropdown>
             </Space>
@@ -240,13 +254,21 @@ const Layout: React.FC = () => {
         <Content
           style={{
             margin: '24px 16px',
-            padding: 24,
+            padding: 0,
             minHeight: 280,
             background: colorBgContainer,
             borderRadius: borderRadiusLG,
           }}
         >
-          <Outlet />
+          <div className="main-content-card">
+            {user && user.roleName === '超级管理员' && (
+              <div style={{ marginBottom: 24 }}>
+                <Link to="/users" style={{ marginRight: 16 }}>用户管理</Link>
+                <span style={{ cursor: 'pointer' }} onClick={handleLogout}>退出登录</span>
+              </div>
+            )}
+            {children ? children : <Outlet />}
+          </div>
         </Content>
       </AntLayout>
     </AntLayout>

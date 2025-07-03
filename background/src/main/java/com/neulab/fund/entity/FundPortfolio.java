@@ -8,7 +8,7 @@ import java.util.List;
  * 基金组合实体
  */
 @Entity
-@Table(name = "fund_portfolio")
+@Table(name = "`fund_portfolio`")
 public class FundPortfolio {
     /** 主键ID */
     @Id

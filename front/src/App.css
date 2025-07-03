@@ -1,8 +1,18 @@
-#root {
+/* 主站内容样式 */
+.main-root {
   max-width: 1280px;
   margin: 0 auto;
   padding: 2rem;
   text-align: center;
+}
+
+/* 登录/注册页全屏样式 */
+.auth-root {
+  width: 100vw;
+  height: 100vh;
+  padding: 0;
+  margin: 0;
+  background: #fff;
 }
 
 .logo {
@@ -39,4 +49,15 @@
 
 .read-the-docs {
   color: #888;
+}
+
+/* 登录/注册页背景和居中 */
+.login-page-bg {
+  min-height: 100vh;
+  min-width: 100vw;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  background: linear-gradient(135deg, #f0f4ff 0%, #e6f7ff 100%);
 }

@@ -1,5 +1,7 @@
 package com.neulab.fund.entity;
 
+import jakarta.persistence.Entity;
+import jakarta.persistence.Table;
 import jakarta.persistence.*;
 import lombok.Data;
 import java.time.LocalDateTime;
