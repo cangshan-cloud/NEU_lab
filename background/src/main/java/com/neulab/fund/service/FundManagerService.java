@@ -13,4 +13,8 @@ public interface FundManagerService {
     FundManager getManagerById(Long id);
     /** 新增经理 */
     FundManager createManager(FundManager manager);
+    /**
+     * 查询全部经理（VO版）
+     */
+    java.util.List<com.neulab.fund.vo.FundManagerVO> getAllManagerVOs();
 } 

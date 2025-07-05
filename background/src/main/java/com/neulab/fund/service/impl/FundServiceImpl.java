@@ -171,4 +171,66 @@ public class FundServiceImpl implements FundService {
         
         return metrics;
     }
+
+    @Override
+    public List<com.neulab.fund.vo.FundListVO> getAllFundVOs() {
+        List<Fund> fundList = fundRepository.findAll();
+        List<com.neulab.fund.vo.FundListVO> voList = new java.util.ArrayList<>();
+        for (Fund fund : fundList) {
+            voList.add(toFundListVO(fund));
+        }
+        return voList;
+    }
+
+    @Override
+    public org.springframework.data.domain.Page<com.neulab.fund.vo.FundListVO> getFundVOsWithFilter(Map<String, Object> filters, org.springframework.data.domain.Pageable pageable) {
+        org.springframework.data.domain.Page<Fund> page = getFundsWithFilter(filters, pageable);
+        return page.map(this::toFundListVO);
+    }
+
+    private com.neulab.fund.vo.FundListVO toFundListVO(Fund fund) {
+        com.neulab.fund.vo.FundListVO vo = new com.neulab.fund.vo.FundListVO();
+        vo.setId(fund.getId());
+        vo.setFundCode(fund.getFundCode());
+        vo.setFundName(fund.getFundName());
+        vo.setCompanyId(fund.getCompanyId());
+        if (fund.getCompanyId() != null) {
+            FundCompany company = fundCompanyRepository.findById(fund.getCompanyId()).orElse(null);
+            vo.setCompanyName(company != null ? company.getCompanyName() : null);
+        }
+        vo.setManagerId(fund.getManagerId());
+        if (fund.getManagerId() != null) {
+            FundManager manager = fundManagerRepository.findById(fund.getManagerId()).orElse(null);
+            vo.setManagerName(manager != null ? manager.getManagerName() : null);
+        }
+        vo.setInceptionDate(fund.getInceptionDate());
+        vo.setFundSize(fund.getFundSize());
+        vo.setNav(fund.getNav());
+        vo.setNavDate(fund.getNavDate());
+        vo.setRiskLevel(fund.getRiskLevel());
+        vo.setInvestmentStrategy(fund.getInvestmentStrategy());
+        vo.setBenchmark(fund.getBenchmark());
+        vo.setStatus(fund.getStatus());
+        vo.setCode(fund.getCode());
+        vo.setName(fund.getName());
+        vo.setType(fund.getType());
+        vo.setCreatedAt(fund.getCreatedAt());
+        vo.setUpdatedAt(fund.getUpdatedAt());
+        // tags转换
+        if (fund.getTags() != null) {
+            java.util.List<com.neulab.fund.vo.TagVO> tagVOList = new java.util.ArrayList<>();
+            for (com.neulab.fund.entity.FundTag tag : fund.getTags()) {
+                com.neulab.fund.vo.TagVO tagVO = new com.neulab.fund.vo.TagVO();
+                tagVO.setId(tag.getId());
+                tagVO.setTagName(tag.getTagName());
+                tagVO.setCreatedAt(tag.getCreatedAt());
+                tagVO.setUpdatedAt(tag.getUpdatedAt());
+                tagVOList.add(tagVO);
+            }
+            vo.setTags(tagVOList);
+        } else {
+            vo.setTags(null);
+        }
+        return vo;
+    }
 } 

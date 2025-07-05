@@ -32,4 +32,29 @@ public class FundCompanyServiceImpl implements FundCompanyService {
     public FundCompany createCompany(FundCompany company) {
         return fundCompanyRepository.save(company);
     }
+
+    @Override
+    public java.util.List<com.neulab.fund.vo.FundCompanyVO> getAllCompanyVOs() {
+        java.util.List<FundCompany> companyList = fundCompanyRepository.findAll();
+        java.util.List<com.neulab.fund.vo.FundCompanyVO> voList = new java.util.ArrayList<>();
+        for (FundCompany company : companyList) {
+            com.neulab.fund.vo.FundCompanyVO vo = new com.neulab.fund.vo.FundCompanyVO();
+            vo.setId(company.getId());
+            vo.setCompanyCode(company.getCompanyCode());
+            vo.setCompanyName(company.getCompanyName());
+            vo.setCompanyShortName(company.getCompanyShortName());
+            vo.setEstablishmentDate(company.getEstablishmentDate());
+            vo.setRegisteredCapital(company.getRegisteredCapital());
+            vo.setLegalRepresentative(company.getLegalRepresentative());
+            vo.setContactPhone(company.getContactPhone());
+            vo.setContactEmail(company.getContactEmail());
+            vo.setWebsite(company.getWebsite());
+            vo.setStatus(company.getStatus());
+            vo.setDescription(company.getDescription());
+            vo.setCreatedAt(company.getCreatedAt() != null ? company.getCreatedAt().toString() : null);
+            vo.setUpdatedAt(company.getUpdatedAt() != null ? company.getUpdatedAt().toString() : null);
+            voList.add(vo);
+        }
+        return voList;
+    }
 } 

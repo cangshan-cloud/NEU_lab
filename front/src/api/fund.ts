@@ -5,6 +5,7 @@ import type {
   Fund, 
   FundTag, 
   FundPortfolio,
+  FundPortfolioVO,
   PageResult,
   QueryParams 
 } from '../types';
@@ -33,6 +34,8 @@ export const fundCompanyApi = {
   
   // 获取所有基金公司（不分页）
   getAll: () => get<FundCompany[]>('/fund-companies'),
+  
+  // 获取所有基金公司VO
 };
 
 // 基金经理API
@@ -156,7 +159,11 @@ export const fundPortfolioApi = {
   
   // 获取所有组合（不分页）
   getAll: () => 
-    get<FundPortfolio[]>('/fund-portfolios/all'),
+    get<FundPortfolio[]>('/fund-portfolios'),
+  
+  // 获取所有组合VO（不分页）
+  getAllVOs: () => 
+    get<FundPortfolioVO[]>('/fund-portfolios/vo'),
 };
 
 // 获取所有基金组合（不分页）

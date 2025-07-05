@@ -54,7 +54,7 @@ public class FundController {
             @RequestParam(required = false) Long managerId,
             @RequestParam(required = false) String type,
             @RequestParam(required = false) String riskLevel,
-            @RequestParam(required = false) ArrayList<Long> tagIds,
+            @RequestParam(value = "tagIds", required = false) List<Long> tagIds,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size
     ) {
@@ -110,5 +110,39 @@ public class FundController {
         Fund fund = fundService.getFundById(id);
         // 可扩展聚合业绩、持仓、公告等
         return ApiResponse.success(fund);
+    }
+
+    /**
+     * 查询全部基金（VO版）
+     */
+    @GetMapping("/all-vo")
+    public ApiResponse<List<com.neulab.fund.vo.FundListVO>> getAllFundVOs() {
+        return ApiResponse.success(fundService.getAllFundVOs());
+    }
+
+    /**
+     * 多条件、标签筛选基金（分页，VO版）
+     */
+    @GetMapping("/vo")
+    public ApiResponse<org.springframework.data.domain.Page<com.neulab.fund.vo.FundListVO>> getFundVOs(
+            @RequestParam(required = false) String keyword,
+            @RequestParam(required = false) Long companyId,
+            @RequestParam(required = false) Long managerId,
+            @RequestParam(required = false) String type,
+            @RequestParam(required = false) String riskLevel,
+            @RequestParam(value = "tagIds", required = false) List<Long> tagIds,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size
+    ) {
+        org.springframework.data.domain.Pageable pageable = org.springframework.data.domain.PageRequest.of(page, size);
+        java.util.Map<String, Object> filters = new java.util.HashMap<>();
+        if (keyword != null) filters.put("keyword", keyword);
+        if (companyId != null) filters.put("companyId", companyId);
+        if (managerId != null) filters.put("managerId", managerId);
+        if (type != null) filters.put("type", type);
+        if (riskLevel != null) filters.put("riskLevel", riskLevel);
+        if (tagIds != null && !tagIds.isEmpty()) filters.put("tagIds", tagIds);
+        org.springframework.data.domain.Page<com.neulab.fund.vo.FundListVO> result = fundService.getFundVOsWithFilter(filters, pageable);
+        return ApiResponse.success(result);
     }
 } 

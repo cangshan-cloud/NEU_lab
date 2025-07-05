@@ -42,4 +42,12 @@ public class FundManagerController {
     public ApiResponse<FundManager> createManager(@RequestBody FundManager manager) {
         return ApiResponse.success(fundManagerService.createManager(manager));
     }
+
+    /**
+     * 查询全部经理（VO版）
+     */
+    @GetMapping("/vo")
+    public com.neulab.fund.vo.ApiResponse<java.util.List<com.neulab.fund.vo.FundManagerVO>> getAllManagerVOs() {
+        return com.neulab.fund.vo.ApiResponse.success(fundManagerService.getAllManagerVOs());
+    }
 } 

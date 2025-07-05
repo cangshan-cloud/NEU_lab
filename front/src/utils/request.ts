@@ -2,6 +2,7 @@ import axios from 'axios';
 import type { AxiosRequestConfig, AxiosResponse } from 'axios';
 import { message } from 'antd';
 import type { ApiResponse } from '../types';
+import qs from 'qs';
 
 // 创建axios实例
 const request = axios.create({
@@ -10,6 +11,7 @@ const request = axios.create({
   headers: {
     'Content-Type': 'application/json',
   },
+  paramsSerializer: params => qs.stringify(params, { arrayFormat: 'repeat' })
 });
 
 // 请求拦截器：自动携带token

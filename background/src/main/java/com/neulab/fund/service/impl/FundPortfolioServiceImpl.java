@@ -32,4 +32,38 @@ public class FundPortfolioServiceImpl implements FundPortfolioService {
     public FundPortfolio createPortfolio(FundPortfolio portfolio) {
         return fundPortfolioRepository.save(portfolio);
     }
+
+    @Override
+    public FundPortfolio updatePortfolio(FundPortfolio portfolio) {
+        return fundPortfolioRepository.save(portfolio);
+    }
+
+    @Override
+    public void deletePortfolio(Long id) {
+        fundPortfolioRepository.deleteById(id);
+    }
+
+    @Override
+    public java.util.List<com.neulab.fund.vo.FundPortfolioVO> getAllPortfolioVOs() {
+        java.util.List<FundPortfolio> portfolioList = fundPortfolioRepository.findAll();
+        java.util.List<com.neulab.fund.vo.FundPortfolioVO> voList = new java.util.ArrayList<>();
+        for (FundPortfolio portfolio : portfolioList) {
+            com.neulab.fund.vo.FundPortfolioVO vo = new com.neulab.fund.vo.FundPortfolioVO();
+            vo.setId(portfolio.getId());
+            vo.setPortfolioCode(portfolio.getPortfolioCode());
+            vo.setPortfolioName(portfolio.getPortfolioName());
+            vo.setPortfolioType(portfolio.getPortfolioType());
+            vo.setRiskLevel(portfolio.getRiskLevel());
+            vo.setTargetReturn(portfolio.getTargetReturn());
+            vo.setMaxDrawdown(portfolio.getMaxDrawdown());
+            vo.setInvestmentHorizon(portfolio.getInvestmentHorizon());
+            vo.setMinInvestment(portfolio.getMinInvestment());
+            vo.setStatus(portfolio.getStatus());
+            vo.setDescription(portfolio.getDescription());
+            vo.setCreatedAt(portfolio.getCreatedAt() != null ? portfolio.getCreatedAt().toString() : null);
+            vo.setUpdatedAt(portfolio.getUpdatedAt() != null ? portfolio.getUpdatedAt().toString() : null);
+            voList.add(vo);
+        }
+        return voList;
+    }
 } 

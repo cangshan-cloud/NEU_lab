@@ -79,4 +79,14 @@ public interface FundService {
      * 获取基金画像
      */
     Map<String, Object> getFundProfile(Long fundId);
+
+    /**
+     * 获取所有基金（VO版）
+     */
+    List<com.neulab.fund.vo.FundListVO> getAllFundVOs();
+
+    /**
+     * 根据条件筛选基金（分页，VO版）
+     */
+    org.springframework.data.domain.Page<com.neulab.fund.vo.FundListVO> getFundVOsWithFilter(Map<String, Object> filters, org.springframework.data.domain.Pageable pageable);
 } 

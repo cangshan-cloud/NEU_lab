@@ -13,4 +13,8 @@ public interface FundCompanyService {
     FundCompany getCompanyById(Long id);
     /** 新增公司 */
     FundCompany createCompany(FundCompany company);
+    /**
+     * 查询全部公司（VO版）
+     */
+    java.util.List<com.neulab.fund.vo.FundCompanyVO> getAllCompanyVOs();
 } 

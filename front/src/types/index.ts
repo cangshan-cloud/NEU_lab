@@ -59,11 +59,9 @@ export interface Fund {
   id: number;
   fundCode: string;
   fundName: string;
-  fundType?: string;
   name?: string;   // 兼容后端返回
   code?: string;   // 兼容后端返回
   type?: string;   // 兼容后端返回
-  fundCategory?: string;
   companyId?: number;
   managerId?: number;
   inceptionDate?: string;
@@ -76,6 +74,7 @@ export interface Fund {
   status: string;
   createdAt: string;
   updatedAt: string;
+  tags?: FundTag[]; // 基金标签
 }
 
 // 基金标签类型
@@ -107,6 +106,23 @@ export interface FundPortfolio {
   createdAt: string;
   updatedAt: string;
   funds?: Fund[]; // 修正为 Fund[]，与后端一致
+}
+
+// 基金组合VO类型
+export interface FundPortfolioVO {
+  id: number;
+  portfolioName: string;
+  portfolioCode: string;
+  portfolioType?: string;
+  riskLevel?: string;
+  targetReturn?: number;
+  maxDrawdown?: number;
+  investmentHorizon?: string;
+  minInvestment?: number;
+  description?: string;
+  status: string;
+  createdAt: string;
+  updatedAt: string;
 }
 
 // 因子类型
@@ -274,6 +290,31 @@ export interface TimingPortfolio {
 
 // 产品类型
 export interface Product {
+  id: number;
+  productCode: string;
+  productName: string;
+  productType?: string;
+  strategyId?: number;
+  portfolioId?: number;
+  riskLevel?: string;
+  targetReturn?: number;
+  maxDrawdown?: number;
+  investmentHorizon?: string;
+  minInvestment?: number;
+  maxInvestment?: number;
+  managementFee?: number;
+  performanceFee?: number;
+  subscriptionFee?: number;
+  redemptionFee?: number;
+  description?: string;
+  prospectus?: string;
+  status: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+// 产品VO类型
+export interface ProductVO {
   id: number;
   productCode: string;
   productName: string;

@@ -4,6 +4,7 @@ import type {
   IndexPortfolio, 
   TimingPortfolio, 
   Product, 
+  ProductVO,
   ProductReview, 
   ProductPerformance,
   PageResult,
@@ -135,7 +136,11 @@ export const productApi = {
   
   // 获取所有产品（不分页）
   getAll: () => 
-    get<Product[]>('/products/all'),
+    get<Product[]>('/products'),
+  
+  // 获取所有产品VO（不分页）
+  getAllVOs: () => 
+    get<ProductVO[]>('/products/vo'),
 };
 
 // 产品审核API

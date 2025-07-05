@@ -4,6 +4,7 @@ import com.neulab.fund.entity.FundPortfolio;
 import com.neulab.fund.repository.FundPortfolioRepository;
 import com.neulab.fund.vo.ApiResponse;
 import org.springframework.web.bind.annotation.*;
+import com.neulab.fund.service.FundPortfolioService;
 
 import java.util.List;
 
@@ -13,10 +14,10 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/fund-portfolios")
 public class FundPortfolioController {
-    private final FundPortfolioRepository fundPortfolioRepository;
+    private final FundPortfolioService fundPortfolioService;
 
-    public FundPortfolioController(FundPortfolioRepository fundPortfolioRepository) {
-        this.fundPortfolioRepository = fundPortfolioRepository;
+    public FundPortfolioController(FundPortfolioService fundPortfolioService) {
+        this.fundPortfolioService = fundPortfolioService;
     }
 
     /**
@@ -24,7 +25,7 @@ public class FundPortfolioController {
      */
     @GetMapping
     public ApiResponse<List<FundPortfolio>> getAllPortfolios() {
-        return ApiResponse.success(fundPortfolioRepository.findAll());
+        return ApiResponse.success(fundPortfolioService.getAllPortfolios());
     }
 
     /**
@@ -32,7 +33,7 @@ public class FundPortfolioController {
      */
     @GetMapping("/{id}")
     public ApiResponse<FundPortfolio> getPortfolioById(@PathVariable Long id) {
-        return ApiResponse.success(fundPortfolioRepository.findById(id).orElse(null));
+        return ApiResponse.success(fundPortfolioService.getPortfolioById(id));
     }
 
     /**
@@ -40,12 +41,29 @@ public class FundPortfolioController {
      */
     @PostMapping
     public ApiResponse<FundPortfolio> createPortfolio(@RequestBody FundPortfolio portfolio) {
-        return ApiResponse.success(fundPortfolioRepository.save(portfolio));
+        return ApiResponse.success(fundPortfolioService.createPortfolio(portfolio));
+    }
+
+    /**
+     * 更新组合
+     */
+    @PutMapping("/{id}")
+    public ApiResponse<FundPortfolio> updatePortfolio(@PathVariable Long id, @RequestBody FundPortfolio portfolio) {
+        portfolio.setId(id);
+        return ApiResponse.success(fundPortfolioService.updatePortfolio(portfolio));
     }
 
     @DeleteMapping("/{id}")
     public ApiResponse<Void> deletePortfolio(@PathVariable Long id) {
-        fundPortfolioRepository.deleteById(id);
+        fundPortfolioService.deletePortfolio(id);
         return ApiResponse.success(null);
+    }
+
+    /**
+     * 查询全部组合（VO版）
+     */
+    @GetMapping("/vo")
+    public com.neulab.fund.vo.ApiResponse<java.util.List<com.neulab.fund.vo.FundPortfolioVO>> getAllPortfolioVOs() {
+        return com.neulab.fund.vo.ApiResponse.success(fundPortfolioService.getAllPortfolioVOs());
     }
 } 

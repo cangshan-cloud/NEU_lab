@@ -13,4 +13,14 @@ public interface FundPortfolioService {
     FundPortfolio getPortfolioById(Long id);
     /** 新增组合 */
     FundPortfolio createPortfolio(FundPortfolio portfolio);
+    /** 更新组合 */
+    FundPortfolio updatePortfolio(FundPortfolio portfolio);
+    /**
+     * 查询全部组合（VO版）
+     */
+    java.util.List<com.neulab.fund.vo.FundPortfolioVO> getAllPortfolioVOs();
+    /**
+     * 删除组合
+     */
+    void deletePortfolio(Long id);
 } 

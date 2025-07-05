@@ -42,4 +42,12 @@ public class FundCompanyController {
     public ApiResponse<FundCompany> createCompany(@RequestBody FundCompany company) {
         return ApiResponse.success(fundCompanyService.createCompany(company));
     }
+
+    /**
+     * 查询全部公司（VO版）
+     */
+    @GetMapping("/vo")
+    public com.neulab.fund.vo.ApiResponse<java.util.List<com.neulab.fund.vo.FundCompanyVO>> getAllCompanyVOs() {
+        return com.neulab.fund.vo.ApiResponse.success(fundCompanyService.getAllCompanyVOs());
+    }
 } 
