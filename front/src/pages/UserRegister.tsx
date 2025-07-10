@@ -9,7 +9,7 @@ const UserRegister: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [form] = Form.useForm();
   const navigate = useNavigate();
-  const [roleId, setRoleId] = useState<number | null>(null);
+  const [roleId, setRoleId] = useState<number>(2);
 
   useEffect(() => {
     // 获取所有角色，查找普通用户id

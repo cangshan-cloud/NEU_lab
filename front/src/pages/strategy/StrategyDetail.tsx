@@ -1,112 +1,58 @@
-import React, { useState, useEffect } from 'react';
-import { Card, Descriptions, Tag, Button, Space, message, Spin } from 'antd';
+import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { ArrowLeftOutlined, EditOutlined } from '@ant-design/icons';
-import { getStrategyById } from '../../api/strategy';
-import type { Strategy } from '../../types';
+import { fetchStrategyDetail } from '../../api/strategy';
+import type { StrategyVO } from '../../api/strategy';
+import { Card, Descriptions, Button, message, Spin, Tag, Space } from 'antd';
 
 const StrategyDetail: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const [data, setData] = useState<StrategyVO | null>(null);
   const [loading, setLoading] = useState(false);
-  const [strategy, setStrategy] = useState<Strategy | null>(null);
-
-  const fetchData = async () => {
-    if (!id) return;
-    setLoading(true);
-    try {
-      const response = await getStrategyById(parseInt(id));
-      if (response.data.code === 200) {
-        setStrategy(response.data.data);
-      }
-    } catch (error) {
-      message.error('获取策略详情失败');
-    } finally {
-      setLoading(false);
-    }
-  };
 
   useEffect(() => {
-    fetchData();
+    if (!id) return;
+    setLoading(true);
+    fetchStrategyDetail(Number(id))
+      .then(res => setData(res.data.data))
+      .catch(() => message.error('获取详情失败'))
+      .finally(() => setLoading(false));
   }, [id]);
 
-  if (loading) {
-    return (
-      <div style={{ textAlign: 'center', padding: '50px' }}>
-        <Spin size="large" />
-      </div>
-    );
-  }
-
-  if (!strategy) {
-    return (
-      <Card>
-        <div style={{ textAlign: 'center', padding: '50px' }}>
-          策略不存在
-        </div>
-      </Card>
-    );
-  }
+  const formatPercent = (v?: number) => v !== undefined && v !== null ? `${(v * 100).toFixed(2)}%` : '-';
+  const formatTime = (t?: string) => t ? new Date(t).toLocaleString() : '-';
 
   return (
-    <div>
-      <Card 
-        title="策略详情" 
-        extra={
-          <Space>
-            <Button 
-              icon={<ArrowLeftOutlined />} 
-              onClick={() => navigate('/strategy/list')}
-            >
-              返回列表
-            </Button>
-            <Button 
-              type="primary" 
-              icon={<EditOutlined />}
-              onClick={() => navigate(`/strategy/edit/${id}`)}
-            >
-              编辑策略
-            </Button>
+    <Card title="策略详情" extra={<Button onClick={() => navigate(-1)}>返回列表</Button>}>
+      {loading ? <Spin /> : data && (
+        <>
+          <Descriptions bordered column={2}>
+            <Descriptions.Item label="策略代码">{data.strategyCode}</Descriptions.Item>
+            <Descriptions.Item label="策略名称">{data.strategyName}</Descriptions.Item>
+            <Descriptions.Item label="类型">{data.strategyType}</Descriptions.Item>
+            <Descriptions.Item label="风险等级">
+              <Tag color={data.riskLevel === '低' ? 'green' : data.riskLevel === '中' ? 'orange' : 'red'}>{data.riskLevel}</Tag>
+            </Descriptions.Item>
+            <Descriptions.Item label="目标收益率">{formatPercent(data.targetReturn)}</Descriptions.Item>
+            <Descriptions.Item label="最大回撤">{formatPercent(data.maxDrawdown)}</Descriptions.Item>
+            <Descriptions.Item label="投资期限">{data.investmentHorizon}</Descriptions.Item>
+            <Descriptions.Item label="状态">
+              <Tag color={data.status === 'ACTIVE' ? 'green' : 'red'}>{data.status === 'ACTIVE' ? '启用' : '禁用'}</Tag>
+            </Descriptions.Item>
+            <Descriptions.Item label="因子树ID">{data.factorTreeId}</Descriptions.Item>
+            <Descriptions.Item label="参数">{data.parameters}</Descriptions.Item>
+            <Descriptions.Item label="描述" span={2}>{data.description}</Descriptions.Item>
+            <Descriptions.Item label="创建时间">{formatTime(data.createdAt)}</Descriptions.Item>
+            <Descriptions.Item label="更新时间">{formatTime(data.updatedAt)}</Descriptions.Item>
+          </Descriptions>
+          <Space style={{ marginTop: 24 }}>
+            <Button type="primary" onClick={() => navigate(`/strategies/edit/${data.id}`)}>编辑</Button>
+            <Button onClick={() => navigate(`/strategies/backtest/${data.id}`)}>回测</Button>
+            <Button onClick={() => navigate(`/strategies/backtest-list/${data.id}`)}>回测历史</Button>
           </Space>
-        }
-      >
-        <Descriptions bordered column={2}>
-          <Descriptions.Item label="策略ID">{strategy.id}</Descriptions.Item>
-          <Descriptions.Item label="策略代码">{strategy.strategyCode}</Descriptions.Item>
-          <Descriptions.Item label="策略名称">{strategy.strategyName}</Descriptions.Item>
-          <Descriptions.Item label="策略类型">{strategy.strategyType}</Descriptions.Item>
-          <Descriptions.Item label="风险等级">
-            <Tag color={
-              strategy.riskLevel === 'LOW' ? 'green' : 
-              strategy.riskLevel === 'MEDIUM' ? 'orange' : 'red'
-            }>
-              {strategy.riskLevel}
-            </Tag>
-          </Descriptions.Item>
-          <Descriptions.Item label="目标收益">
-            {strategy.targetReturn ? `${(strategy.targetReturn * 100).toFixed(2)}%` : '-'}
-          </Descriptions.Item>
-          <Descriptions.Item label="最大回撤">
-            {strategy.maxDrawdown ? `${(strategy.maxDrawdown * 100).toFixed(2)}%` : '-'}
-          </Descriptions.Item>
-          <Descriptions.Item label="投资期限">{strategy.investmentHorizon}</Descriptions.Item>
-          <Descriptions.Item label="状态">
-            <Tag color={strategy.status === 'ACTIVE' ? 'green' : 'red'}>
-              {strategy.status === 'ACTIVE' ? '启用' : '禁用'}
-            </Tag>
-          </Descriptions.Item>
-          <Descriptions.Item label="创建时间">
-            {new Date(strategy.createdAt).toLocaleString()}
-          </Descriptions.Item>
-          <Descriptions.Item label="更新时间">
-            {new Date(strategy.updatedAt).toLocaleString()}
-          </Descriptions.Item>
-          <Descriptions.Item label="描述" span={2}>
-            {strategy.description || '-'}
-          </Descriptions.Item>
-        </Descriptions>
-      </Card>
-    </div>
+        </>
+      )}
+    </Card>
   );
 };
 

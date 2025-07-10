@@ -29,4 +29,5 @@ public interface ProductService {
      * 查询全部产品（VO版）
      */
     java.util.List<com.neulab.fund.vo.ProductVO> getAllProductVOs();
+    void submitProductReview(Long productId);
 } 

@@ -247,7 +247,7 @@ export function accountRebalance(data: {
 }
 
 export function batchSubmitTradeOrders(orderIds: number[]) {
-  return post<void>('/trades/trade-orders/batch-submit', orderIds);
+  return post<void>('/trade-orders/batch-submit', orderIds);
 }
 
 export function batchRejectTradeOrders(orderIds: number[]) {

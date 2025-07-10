@@ -3,7 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { Table, Button, Card, message, Pagination, Modal, Descriptions, Tag, Alert } from 'antd';
 import axios from 'axios';
 
-const StrategyBacktestList: React.FC = () => {
+const SingleStrategyBacktestList: React.FC = () => {
   const { id } = useParams<{ id?: string }>();
   const navigate = useNavigate();
   const [data, setData] = useState<any[]>([]);
@@ -15,22 +15,18 @@ const StrategyBacktestList: React.FC = () => {
   const [modalOpen, setModalOpen] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [strategyName, setStrategyName] = useState<string | null>(null);
-  const [isValidIdInUrl, setIsValidIdInUrl] = useState(false);
 
   useEffect(() => {
     setLoading(true);
     setError(null);
-    // 只在id存在且合法时才带strategyId，否则请求所有回测
     const parsedId = Number(id);
     const currentValidId = id !== undefined && id !== null && id !== '' && !isNaN(parsedId) && Number.isFinite(parsedId);
-    setIsValidIdInUrl(currentValidId);
-
-    // 默认只请求所有回测历史，不带strategyId
-    let url = `/api/strategy-backtests?page=${page - 1}&size=${size}`;
-    if (currentValidId) {
-      url = `/api/strategy-backtests?strategyId=${parsedId}&page=${page - 1}&size=${size}`;
+    if (!currentValidId) {
+      setError('未获取到有效策略ID，无法加载回测历史');
+      setLoading(false);
+      return;
     }
-
+    const url = `/api/strategy-backtests?strategyId=${parsedId}&page=${page - 1}&size=${size}`;
     axios.get(url)
       .then(res => {
         setData(res.data.data?.content || []);
@@ -45,14 +41,9 @@ const StrategyBacktestList: React.FC = () => {
       })
       .finally(() => setLoading(false));
 
-    // 只有在id合法时才查策略名
-    if (currentValidId) {
-      axios.get(`/api/strategies/${parsedId}`)
-        .then(res => setStrategyName(res.data.data?.strategyName || null))
-        .catch(() => setStrategyName(null));
-    } else {
-      setStrategyName(null);
-    }
+    axios.get(`/api/strategies/${parsedId}`)
+      .then(res => setStrategyName(res.data.data?.strategyName || null))
+      .catch(() => setStrategyName(null));
   }, [id, page, size]);
 
   const formatPercent = (v?: number) => v !== undefined && v !== null ? `${(v * 100).toFixed(2)}%` : '-';
@@ -75,15 +66,21 @@ const StrategyBacktestList: React.FC = () => {
   ];
 
   return (
-    <Card title={isValidIdInUrl ? `策略【${strategyName || id}】回测历史` : '全部策略回测历史'} extra={<Button onClick={() => navigate(-1)}>返回</Button>}>
+    <Card title={strategyName ? `策略【${strategyName}】回测历史` : '策略回测历史'} extra={<Button onClick={() => navigate(-1)}>返回</Button>} bodyStyle={{padding: 0}}>
       {error && <Alert type="error" message={error} showIcon style={{ marginBottom: 16 }} />}
-      <Table
-        rowKey="id"
-        columns={columns}
-        dataSource={data}
-        loading={loading}
-        pagination={false}
-      />
+      <div style={{ width: '100%', overflowX: 'auto' }}>
+        <Table
+          rowKey="id"
+          columns={columns}
+          dataSource={data}
+          loading={loading}
+          pagination={false}
+          bordered
+          size="middle"
+          style={{ minWidth: 1200 }}
+          scroll={{ x: 1200 }}
+        />
+      </div>
       <Pagination
         current={page}
         pageSize={size}
@@ -97,14 +94,14 @@ const StrategyBacktestList: React.FC = () => {
         {detail && (
           <Descriptions bordered column={2}>
             <Descriptions.Item label="策略ID">{detail.strategyId}</Descriptions.Item>
-            <Descriptions.Item label="回测名称">{detail.backtestName}</Descriptions.Item>
+            <Descriptions.Item label="回测名称"><b>{detail.backtestName}</b></Descriptions.Item>
             <Descriptions.Item label="回测类型">{detail.backtestType}</Descriptions.Item>
             <Descriptions.Item label="回测区间">{detail.startDate} ~ {detail.endDate}</Descriptions.Item>
             <Descriptions.Item label="初始资金">{detail.initialCapital}</Descriptions.Item>
             <Descriptions.Item label="最终价值">{detail.finalValue}</Descriptions.Item>
-            <Descriptions.Item label="总收益率">{formatPercent(detail.totalReturn)}</Descriptions.Item>
+            <Descriptions.Item label="总收益率"><b style={{color:'#1677ff'}}>{formatPercent(detail.totalReturn)}</b></Descriptions.Item>
             <Descriptions.Item label="年化收益率">{formatPercent(detail.annualReturn)}</Descriptions.Item>
-            <Descriptions.Item label="最大回撤">{formatPercent(detail.maxDrawdown)}</Descriptions.Item>
+            <Descriptions.Item label="最大回撤"><b style={{color:'#faad14'}}>{formatPercent(detail.maxDrawdown)}</b></Descriptions.Item>
             <Descriptions.Item label="夏普比率">{detail.sharpeRatio}</Descriptions.Item>
             <Descriptions.Item label="波动率">{detail.volatility}</Descriptions.Item>
             <Descriptions.Item label="胜率">{formatPercent(detail.winRate)}</Descriptions.Item>
@@ -120,4 +117,4 @@ const StrategyBacktestList: React.FC = () => {
   );
 };
 
-export default StrategyBacktestList; 
+export default SingleStrategyBacktestList; 

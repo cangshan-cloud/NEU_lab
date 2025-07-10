@@ -141,6 +141,9 @@ export const productApi = {
   // 获取所有产品VO（不分页）
   getAllVOs: () => 
     get<ProductVO[]>('/products/vo'),
+  
+  // 提交产品审核申请
+  submitReview: (id: number) => post(`/products/${id}/submit-review`),
 };
 
 // 产品审核API
@@ -172,6 +175,22 @@ export const productReviewApi = {
   // 根据审核状态获取
   getByStatus: (status: string) => 
     get<ProductReview[]>(`/product-reviews/status/${status}`),
+  
+  // 获取所有审核记录
+  getAll: () => 
+    get<ProductReview[]>('/product-reviews'),
+  
+  // 获取待审核列表
+  getPending: () => 
+    get<ProductReview[]>('/product-reviews/pending'),
+  
+  // 审核通过
+  approve: (id: number, data: Partial<ProductReview>) => 
+    put<ProductReview>(`/product-reviews/${id}/approve`, data),
+  
+  // 审核拒绝
+  reject: (id: number, data: Partial<ProductReview>) => 
+    put<ProductReview>(`/product-reviews/${id}/reject`, data),
 };
 
 // 产品收益API

@@ -11,6 +11,8 @@ import org.springframework.data.domain.Pageable;
 
 import java.util.List;
 import java.util.Map;
+import com.neulab.fund.vo.StrategyVO;
+import com.neulab.fund.vo.StrategyDTO;
 
 /**
  * 策略服务接口
@@ -51,21 +53,6 @@ public interface StrategyService {
      * 策略回测
      */
     StrategyBacktest backtestStrategy(Long strategyId, Map<String, Object> backtestConfig);
-    
-    /**
-     * 策略模拟
-     */
-    StrategyBacktest simulateStrategy(Long strategyId, Map<String, Object> simulateConfig);
-    
-    /**
-     * 策略再平衡
-     */
-    boolean rebalanceStrategy(Long strategyId, Map<String, Object> rebalanceConfig);
-    
-    /**
-     * 策略监控
-     */
-    Map<String, Object> monitorStrategy(Long strategyId);
     
     /**
      * 获取策略回测结果
@@ -151,4 +138,21 @@ public interface StrategyService {
      * 选择策略基金
      */
     List<Map<String, Object>> selectStrategyFunds(Map<String, Object> config);
+
+    /**
+     * 分页+筛选查询策略列表（VO版）
+     */
+    org.springframework.data.domain.Page<com.neulab.fund.vo.StrategyVO> pageList(String keyword, String type, String riskLevel, String status, org.springframework.data.domain.Pageable pageable);
+    /**
+     * 获取策略详情（VO版）
+     */
+    com.neulab.fund.vo.StrategyVO getStrategyVOById(Long id);
+    /**
+     * 新建策略（DTO版）
+     */
+    com.neulab.fund.vo.StrategyVO createStrategy(com.neulab.fund.vo.StrategyDTO dto);
+    /**
+     * 编辑策略（DTO版）
+     */
+    com.neulab.fund.vo.StrategyVO updateStrategy(Long id, com.neulab.fund.vo.StrategyDTO dto);
 } 

@@ -42,4 +42,86 @@ public class ProductReviewController {
     public ApiResponse<ProductReview> createReview(@RequestBody ProductReview review) {
         return ApiResponse.success(productReviewService.createReview(review));
     }
+
+    /**
+     * 更新审核记录
+     */
+    @PutMapping("/{id}")
+    public ApiResponse<ProductReview> updateReview(@PathVariable Long id, @RequestBody ProductReview review) {
+        review.setId(id);
+        return ApiResponse.success(productReviewService.updateReview(review));
+    }
+
+    /**
+     * 删除审核记录
+     */
+    @DeleteMapping("/{id}")
+    public ApiResponse<Void> deleteReview(@PathVariable Long id) {
+        productReviewService.deleteReview(id);
+        return ApiResponse.success(null);
+    }
+
+    /**
+     * 根据产品ID获取审核记录
+     */
+    @GetMapping("/product/{productId}")
+    public ApiResponse<List<ProductReview>> getReviewsByProductId(@PathVariable Long productId) {
+        return ApiResponse.success(productReviewService.getReviewsByProductId(productId));
+    }
+
+    /**
+     * 根据审核状态获取记录
+     */
+    @GetMapping("/status/{status}")
+    public ApiResponse<List<ProductReview>> getReviewsByStatus(@PathVariable String status) {
+        return ApiResponse.success(productReviewService.getReviewsByStatus(status));
+    }
+
+    /**
+     * 根据审核人ID获取记录
+     */
+    @GetMapping("/reviewer/{reviewerId}")
+    public ApiResponse<List<ProductReview>> getReviewsByReviewerId(@PathVariable Long reviewerId) {
+        return ApiResponse.success(productReviewService.getReviewsByReviewerId(reviewerId));
+    }
+
+    /**
+     * 提交产品审核
+     */
+    @PostMapping("/submit")
+    public ApiResponse<ProductReview> submitForReview(@RequestBody ProductReview review) {
+        return ApiResponse.success(productReviewService.submitForReview(review));
+    }
+
+    /**
+     * 审核通过
+     */
+    @PutMapping("/{id}/approve")
+    public ApiResponse<ProductReview> approveReview(@PathVariable Long id, @RequestBody ProductReview review) {
+        return ApiResponse.success(productReviewService.approveReview(id, review));
+    }
+
+    /**
+     * 审核拒绝
+     */
+    @PutMapping("/{id}/reject")
+    public ApiResponse<ProductReview> rejectReview(@PathVariable Long id, @RequestBody ProductReview review) {
+        return ApiResponse.success(productReviewService.rejectReview(id, review));
+    }
+
+    /**
+     * 获取待审核列表
+     */
+    @GetMapping("/pending")
+    public ApiResponse<List<ProductReview>> getPendingReviews() {
+        return ApiResponse.success(productReviewService.getPendingReviews());
+    }
+
+    /**
+     * 获取审核历史
+     */
+    @GetMapping("/history/{productId}")
+    public ApiResponse<List<ProductReview>> getReviewHistory(@PathVariable Long productId) {
+        return ApiResponse.success(productReviewService.getReviewHistory(productId));
+    }
 } 

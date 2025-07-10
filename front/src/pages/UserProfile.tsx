@@ -11,6 +11,8 @@ const UserProfile: React.FC = () => {
   const [form, setForm] = useState({ realName: '', email: '', phone: '' });
   const [pwd, setPwd] = useState('');
   const [msg, setMsg] = useState('');
+  const isAdmin = !!user && Number(user.roleId || user.role_id) === 1;
+  const isUser = !!user && Number(user.roleId || user.role_id) === 2;
 
   useEffect(() => {
     const localUser = localStorage.getItem('user');

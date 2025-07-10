@@ -4,6 +4,7 @@ import com.neulab.fund.entity.Product;
 import com.neulab.fund.service.ProductService;
 import com.neulab.fund.vo.ApiResponse;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.security.access.prepost.PreAuthorize;
 
 import java.util.List;
 
@@ -99,5 +100,15 @@ public class ProductController {
     @GetMapping("/vo")
     public com.neulab.fund.vo.ApiResponse<java.util.List<com.neulab.fund.vo.ProductVO>> getAllProductVOs() {
         return com.neulab.fund.vo.ApiResponse.success(productService.getAllProductVOs());
+    }
+
+    /**
+     * 普通用户提交产品审核申请
+     */
+    @PostMapping("/{id}/submit-review")
+    @PreAuthorize("hasRole('USER')")
+    public ApiResponse<Void> submitProductReview(@PathVariable Long id) {
+        productService.submitProductReview(id);
+        return ApiResponse.success(null);
     }
 } 

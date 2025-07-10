@@ -13,4 +13,10 @@ public interface StrategyBacktestService {
     StrategyBacktest getBacktestById(Long id);
     /** 新增回测记录 */
     StrategyBacktest createBacktest(StrategyBacktest backtest);
+    /**
+     * 策略回测（VO版）
+     */
+    com.neulab.fund.vo.StrategyBacktestVO backtest(Long strategyId, com.neulab.fund.vo.StrategyBacktestDTO dto);
+    org.springframework.data.domain.Page<com.neulab.fund.entity.StrategyBacktest> findByStrategyId(Long strategyId, org.springframework.data.domain.Pageable pageable);
+    org.springframework.data.domain.Page<com.neulab.fund.entity.StrategyBacktest> findAll(org.springframework.data.domain.Pageable pageable);
 } 

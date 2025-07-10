@@ -11,6 +11,8 @@ import FactorDetail from '../pages/factor/FactorDetail';
 import FactorTreeList from '../pages/factor/FactorTreeList';
 import StrategyList from '../pages/strategy/StrategyList';
 import StrategyDetail from '../pages/strategy/StrategyDetail';
+import StrategyEdit from '../pages/strategy/StrategyEdit';
+import StrategyBacktest from '../pages/strategy/StrategyBacktest';
 import StrategyBacktestList from '../pages/strategy/StrategyBacktestList';
 import ProductList from '../pages/product/ProductList';
 import ProductDetail from '../pages/product/ProductDetail';
@@ -32,6 +34,8 @@ import UserList from '../pages/UserList';
 import AccountRebalance from '../pages/trade/AccountRebalance';
 import TradeErrorList from '../pages/trade/TradeErrorList';
 import DeliveryOrderList from '../pages/trade/DeliveryOrderList';
+import AllStrategyBacktestList from '../pages/strategy/AllStrategyBacktestList';
+import SingleStrategyBacktestList from '../pages/strategy/SingleStrategyBacktestList';
 
 const RequireAuth: React.FC = () => {
   const token = localStorage.getItem('token');
@@ -59,7 +63,11 @@ const Router = () => (
         <Route path="factors/style-create" element={<StyleFactorCreate />} />
         <Route path="strategies" element={<StrategyList />} />
         <Route path="strategies/:id" element={<StrategyDetail />} />
-        <Route path="strategies/backtests" element={<StrategyBacktestList />} />
+        <Route path="strategies/edit/:id" element={<StrategyEdit />} />
+        <Route path="strategies/create" element={<StrategyEdit />} />
+        <Route path="strategies/backtest/:id" element={<StrategyBacktest />} />
+        <Route path="strategies/backtest-list" element={<AllStrategyBacktestList />} />
+        <Route path="strategies/backtest-list/:id" element={<SingleStrategyBacktestList />} />
         <Route path="products" element={<ProductList />} />
         <Route path="products/:id" element={<ProductDetail />} />
         <Route path="products/reviews" element={<ProductReviewList />} />

@@ -28,337 +28,139 @@ import {
   DeleteOutlined,
 } from '@ant-design/icons';
 import { Line, Pie, Column } from '@ant-design/plots';
+import request from '../../utils/request';
 
 const { Title, Text } = Typography;
 
 const Dashboard: React.FC = () => {
   const [loading, setLoading] = useState(false);
+  const [statistics, setStatistics] = useState([
+    { title: '基金总数', value: 0, prefix: <FundOutlined />, color: '#1890ff', change: 0, changeType: 'up' },
+    { title: '因子数量', value: 0, prefix: <ExperimentOutlined />, color: '#52c41a', change: 0, changeType: 'up' },
+    { title: '策略数量', value: 0, prefix: <SettingOutlined />, color: '#faad14', change: 0, changeType: 'up' },
+    { title: '产品数量', value: 0, prefix: <ShoppingOutlined />, color: '#f5222d', change: 0, changeType: 'up' },
+  ]);
+  const [recentTrades, setRecentTrades] = useState<any[]>([]);
+  const [strategyPerformance, setStrategyPerformance] = useState<any[]>([]);
+  const [productMap, setProductMap] = useState<{ [id: number]: string }>({});
 
-  // 统计数据
-  const statistics = [
-    {
-      title: '基金总数',
-      value: 1256,
-      prefix: <FundOutlined />,
-      color: '#1890ff',
-      change: 12.5,
-      changeType: 'up',
-    },
-    {
-      title: '因子数量',
-      value: 89,
-      prefix: <ExperimentOutlined />,
-      color: '#52c41a',
-      change: 8.2,
-      changeType: 'up',
-    },
-    {
-      title: '策略数量',
-      value: 45,
-      prefix: <SettingOutlined />,
-      color: '#faad14',
-      change: -2.1,
-      changeType: 'down',
-    },
-    {
-      title: '产品数量',
-      value: 23,
-      prefix: <ShoppingOutlined />,
-      color: '#f5222d',
-      change: 15.3,
-      changeType: 'up',
-    },
-  ];
+  useEffect(() => {
+    setLoading(true);
+    Promise.all([
+      request.get('/funds', { params: { page: 0, size: 1 } }),
+      request.get('/factors', { params: { page: 0, size: 1 } }),
+      request.get('/strategies', { params: { page: 0, size: 1 } }),
+      request.get('/products', { params: { page: 0, size: 1000 } }), // 拉全量产品
+      request.get('/trade-orders', { params: { page: 0, size: 5, sort: 'createdAt,desc' } }),
+      request.get('/strategy-backtests', { params: { page: 0, size: 5, sort: 'createdAt,desc' } }),
+    ]).then(([
+      fundsRes, factorsRes, strategiesRes, productsRes, tradesRes, backtestsRes
+    ]) => {
+      // 统计量兼容 data 为数组或对象
+      const getCount = (res: any) =>
+        Array.isArray(res.data.data)
+          ? res.data.data.length
+          : res.data.data?.totalElements || 0;
 
-  // 最近交易数据
-  const recentTrades = [
-    {
-      key: '1',
-      orderNo: 'T20241201001',
-      product: '稳健配置组合',
-      amount: 100000,
-      status: 'completed',
-      time: '2024-12-01 10:30:00',
-    },
-    {
-      key: '2',
-      orderNo: 'T20241201002',
-      product: '成长进取组合',
-      amount: 50000,
-      status: 'processing',
-      time: '2024-12-01 11:15:00',
-    },
-    {
-      key: '3',
-      orderNo: 'T20241201003',
-      product: '价值投资组合',
-      amount: 200000,
-      status: 'completed',
-      time: '2024-12-01 14:20:00',
-    },
-  ];
+      setStatistics([
+        { title: '基金总数', value: getCount(fundsRes), prefix: <FundOutlined />, color: '#1890ff', change: 0, changeType: 'up' },
+        { title: '因子数量', value: getCount(factorsRes), prefix: <ExperimentOutlined />, color: '#52c41a', change: 0, changeType: 'up' },
+        { title: '策略数量', value: getCount(strategiesRes), prefix: <SettingOutlined />, color: '#faad14', change: 0, changeType: 'up' },
+        { title: '产品数量', value: getCount(productsRes), prefix: <ShoppingOutlined />, color: '#f5222d', change: 0, changeType: 'up' },
+      ]);
 
-  // 策略表现数据
-  const strategyPerformance = [
-    { strategy: '稳健配置', return: 8.5, risk: 3.2, sharpe: 1.8 },
-    { strategy: '成长进取', return: 15.2, risk: 8.5, sharpe: 1.4 },
-    { strategy: '价值投资', return: 12.1, risk: 6.8, sharpe: 1.6 },
-    { strategy: '量化对冲', return: 6.8, risk: 2.1, sharpe: 2.1 },
-  ];
+      // 构建产品ID到名称的映射
+      const products = Array.isArray(productsRes.data.data)
+        ? productsRes.data.data
+        : productsRes.data.data?.content || [];
+      const map: { [id: number]: string } = {};
+      products.forEach((p: any) => {
+        map[p.id] = p.productName || p.name || '-';
+      });
+      setProductMap(map);
 
-  // 收益率趋势数据
-  const returnTrendData = [
-    { date: '2024-01', value: 2.1, type: '稳健配置' },
-    { date: '2024-02', value: 2.8, type: '稳健配置' },
-    { date: '2024-03', value: 3.2, type: '稳健配置' },
-    { date: '2024-04', value: 3.8, type: '稳健配置' },
-    { date: '2024-05', value: 4.2, type: '稳健配置' },
-    { date: '2024-06', value: 4.8, type: '稳健配置' },
-    { date: '2024-07', value: 5.1, type: '稳健配置' },
-    { date: '2024-08', value: 5.8, type: '稳健配置' },
-    { date: '2024-09', value: 6.2, type: '稳健配置' },
-    { date: '2024-10', value: 7.1, type: '稳健配置' },
-    { date: '2024-11', value: 7.8, type: '稳健配置' },
-    { date: '2024-12', value: 8.5, type: '稳健配置' },
-  ];
+      // 最近交易兼容 data 为数组或对象
+      const trades = Array.isArray(tradesRes.data.data)
+        ? tradesRes.data.data
+        : tradesRes.data.data?.content || [];
+      setRecentTrades(trades.map((t: any) => ({
+        key: t.id,
+        orderNo: t.orderNo || t.id,
+        product: map[t.productId] || '-', // 用映射查找产品名称
+        amount: t.amount,
+        status: t.status,
+        time: t.createdAt,
+      })));
 
-  // 资产配置数据
-  const assetAllocationData = [
-    { type: '股票型基金', value: 45 },
-    { type: '债券型基金', value: 30 },
-    { type: '混合型基金', value: 15 },
-    { type: '货币型基金', value: 10 },
-  ];
+      // 策略表现兼容 data 为数组或对象
+      const backtests = Array.isArray(backtestsRes.data.data)
+        ? backtestsRes.data.data
+        : backtestsRes.data.data?.content || [];
+      setStrategyPerformance(backtests.map((b: any) => ({
+        key: b.id,
+        strategy: b.strategyName || b.strategyId,
+        return: b.annualReturn,
+        risk: b.volatility,
+        sharpe: b.sharpeRatio,
+      })));
+    }).finally(() => setLoading(false));
+  }, []);
 
   // 表格列定义
   const tradeColumns = [
-    {
-      title: '订单号',
-      dataIndex: 'orderNo',
-      key: 'orderNo',
-    },
-    {
-      title: '产品名称',
-      dataIndex: 'product',
-      key: 'product',
-    },
-    {
-      title: '金额',
-      dataIndex: 'amount',
-      key: 'amount',
-      render: (amount: number) => `¥${amount.toLocaleString()}`,
-    },
-    {
-      title: '状态',
-      dataIndex: 'status',
-      key: 'status',
-      render: (status: string) => (
-        <Tag color={status === 'completed' ? 'green' : 'orange'}>
-          {status === 'completed' ? '已完成' : '处理中'}
-        </Tag>
-      ),
-    },
-    {
-      title: '时间',
-      dataIndex: 'time',
-      key: 'time',
-    },
-    {
-      title: '操作',
-      key: 'action',
-      render: () => (
-        <Space size="small">
-          <Button type="link" size="small" icon={<EyeOutlined />}>
-            查看
-          </Button>
-        </Space>
-      ),
-    },
+    { title: '订单号', dataIndex: 'orderNo', key: 'orderNo' },
+    { title: '产品名称', dataIndex: 'product', key: 'product' },
+    { title: '金额', dataIndex: 'amount', key: 'amount', render: (amount: number) => `¥${amount?.toLocaleString?.() ?? '-'}` },
+    { title: '状态', dataIndex: 'status', key: 'status', render: (status: string) => (<Tag color={status === 'completed' ? 'green' : 'orange'}>{status === 'completed' ? '已完成' : '处理中'}</Tag>) },
+    { title: '时间', dataIndex: 'time', key: 'time' },
   ];
-
   const strategyColumns = [
-    {
-      title: '策略名称',
-      dataIndex: 'strategy',
-      key: 'strategy',
-    },
-    {
-      title: '年化收益率',
-      dataIndex: 'return',
-      key: 'return',
-      render: (value: number) => `${value}%`,
-    },
-    {
-      title: '风险指标',
-      dataIndex: 'risk',
-      key: 'risk',
-      render: (value: number) => `${value}%`,
-    },
-    {
-      title: '夏普比率',
-      dataIndex: 'sharpe',
-      key: 'sharpe',
-    },
-    {
-      title: '操作',
-      key: 'action',
-      render: () => (
-        <Space size="small">
-          <Button type="link" size="small" icon={<EyeOutlined />}>
-            详情
-          </Button>
-          <Button type="link" size="small" icon={<EditOutlined />}>
-            编辑
-          </Button>
-        </Space>
-      ),
-    },
+    { title: '策略名称', dataIndex: 'strategy', key: 'strategy' },
+    { title: '年化收益率', dataIndex: 'return', key: 'return', render: (value: number) => value !== undefined ? `${value}%` : '-' },
+    { title: '风险指标', dataIndex: 'risk', key: 'risk', render: (value: number) => value !== undefined ? `${value}%` : '-' },
+    { title: '夏普比率', dataIndex: 'sharpe', key: 'sharpe', render: (value: number) => value !== undefined ? value : '-' },
   ];
 
   return (
-    <div>
-      <Title level={2}>智能投顾系统仪表盘</Title>
-      <Text type="secondary">欢迎使用NEU智能投顾系统，实时监控投资组合表现</Text>
-      
-      <Divider />
-      
-      {/* 统计卡片 */}
-      <Row gutter={[16, 16]} style={{ marginBottom: 24 }}>
-        {statistics.map((stat, index) => (
-          <Col xs={24} sm={12} lg={6} key={index}>
-            <Card>
+    <div style={{ padding: 24 }}>
+      <Row gutter={24} style={{ marginBottom: 24 }}>
+        {statistics.map((stat, idx) => (
+          <Col key={stat.title} xs={24} sm={12} md={6}>
+            <Card bordered={false} style={{ textAlign: 'center', minHeight: 110 }}>
               <Statistic
                 title={stat.title}
                 value={stat.value}
                 prefix={stat.prefix}
-                valueStyle={{ color: stat.color }}
-                suffix={
-                  <span style={{ fontSize: 14, marginLeft: 8 }}>
-                    {stat.changeType === 'up' ? (
-                      <ArrowUpOutlined style={{ color: '#52c41a' }} />
-                    ) : (
-                      <ArrowDownOutlined style={{ color: '#f5222d' }} />
-                    )}
-                    {Math.abs(stat.change)}%
-                  </span>
-                }
+                valueStyle={{ color: stat.color, fontWeight: 600 }}
+                // 不显示增幅箭头
               />
             </Card>
           </Col>
         ))}
       </Row>
-
-      {/* 图表区域 */}
-      <Row gutter={[16, 16]} style={{ marginBottom: 24 }}>
-        <Col xs={24} lg={16}>
-          <Card title="收益率趋势" extra={<Button type="link">查看详情</Button>}>
-            <Line
-              data={returnTrendData}
-              xField="date"
-              yField="value"
-              seriesField="type"
-              smooth
-              point={{
-                size: 4,
-                shape: 'circle',
-              }}
-              color="#1890ff"
-              height={300}
-            />
-          </Card>
-        </Col>
-        <Col xs={24} lg={8}>
-          <Card title="资产配置">
-            <Pie
-              data={assetAllocationData}
-              angleField="value"
-              colorField="type"
-              radius={0.8}
-              label={{
-                type: 'outer',
-                content: '{name} {percentage}',
-              }}
-              height={300}
-            />
-          </Card>
-        </Col>
-      </Row>
-
-      {/* 表格区域 */}
-      <Row gutter={[16, 16]}>
-        <Col xs={24} lg={12}>
-          <Card title="最近交易" extra={<Button type="link">查看全部</Button>}>
+      <Row gutter={24}>
+        <Col xs={24} md={12}>
+          <Card title="最近交易" bordered={false} style={{ minHeight: 350 }}>
             <Table
               columns={tradeColumns}
               dataSource={recentTrades}
+              loading={loading}
               pagination={false}
               size="small"
+              scroll={{ x: 600 }}
             />
           </Card>
         </Col>
-        <Col xs={24} lg={12}>
-          <Card title="策略表现" extra={<Button type="link">查看全部</Button>}>
+        <Col xs={24} md={12}>
+          <Card title="策略表现" bordered={false} style={{ minHeight: 350 }}>
             <Table
               columns={strategyColumns}
               dataSource={strategyPerformance}
+              loading={loading}
               pagination={false}
               size="small"
+              scroll={{ x: 600 }}
             />
-          </Card>
-        </Col>
-      </Row>
-
-      {/* 系统状态 */}
-      <Row gutter={[16, 16]} style={{ marginTop: 24 }}>
-        <Col xs={24} lg={8}>
-          <Card title="系统状态">
-            <Space direction="vertical" style={{ width: '100%' }}>
-              <div>
-                <Text>数据库连接</Text>
-                <Badge status="success" text="正常" style={{ float: 'right' }} />
-              </div>
-              <div>
-                <Text>API服务</Text>
-                <Badge status="success" text="正常" style={{ float: 'right' }} />
-              </div>
-              <div>
-                <Text>数据同步</Text>
-                <Badge status="processing" text="同步中" style={{ float: 'right' }} />
-              </div>
-            </Space>
-          </Card>
-        </Col>
-        <Col xs={24} lg={8}>
-          <Card title="今日概览">
-            <Space direction="vertical" style={{ width: '100%' }}>
-              <div>
-                <Text>新增用户</Text>
-                <Text strong style={{ float: 'right' }}>12</Text>
-              </div>
-              <div>
-                <Text>交易笔数</Text>
-                <Text strong style={{ float: 'right' }}>156</Text>
-              </div>
-              <div>
-                <Text>交易金额</Text>
-                <Text strong style={{ float: 'right' }}>¥2,450,000</Text>
-              </div>
-            </Space>
-          </Card>
-        </Col>
-        <Col xs={24} lg={8}>
-          <Card title="快速操作">
-            <Space direction="vertical" style={{ width: '100%' }}>
-              <Button type="primary" block>
-                创建新策略
-              </Button>
-              <Button block>
-                导入基金数据
-              </Button>
-              <Button block>
-                生成投资报告
-              </Button>
-            </Space>
           </Card>
         </Col>
       </Row>

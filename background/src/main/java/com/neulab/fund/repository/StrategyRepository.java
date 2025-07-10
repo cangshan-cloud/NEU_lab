@@ -6,6 +6,6 @@ import org.springframework.data.jpa.repository.JpaRepository;
 /**
  * 策略数据访问接口
  */
-public interface StrategyRepository extends JpaRepository<Strategy, Long> {
+public interface StrategyRepository extends JpaRepository<Strategy, Long>, org.springframework.data.jpa.repository.JpaSpecificationExecutor<Strategy> {
     // 可自定义查询方法
 } 

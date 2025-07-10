@@ -1,10 +1,13 @@
 package com.neulab.fund.service.impl;
 
 import com.neulab.fund.entity.Product;
+import com.neulab.fund.entity.ProductReview;
 import com.neulab.fund.repository.ProductRepository;
+import com.neulab.fund.repository.ProductReviewRepository;
 import com.neulab.fund.service.ProductService;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 /**
@@ -13,9 +16,11 @@ import java.util.List;
 @Service
 public class ProductServiceImpl implements ProductService {
     private final ProductRepository productRepository;
+    private final ProductReviewRepository productReviewRepository;
 
-    public ProductServiceImpl(ProductRepository productRepository) {
+    public ProductServiceImpl(ProductRepository productRepository, ProductReviewRepository productReviewRepository) {
         this.productRepository = productRepository;
+        this.productReviewRepository = productReviewRepository;
     }
 
     @Override
@@ -93,5 +98,16 @@ public class ProductServiceImpl implements ProductService {
             voList.add(vo);
         }
         return voList;
+    }
+
+    @Override
+    public void submitProductReview(Long productId) {
+        ProductReview review = new ProductReview();
+        review.setProductId(productId);
+        review.setReviewStatus("PENDING");
+        review.setReviewType("INITIAL");
+        review.setCreatedAt(LocalDateTime.now());
+        review.setUpdatedAt(LocalDateTime.now());
+        productReviewRepository.save(review);
     }
 } 

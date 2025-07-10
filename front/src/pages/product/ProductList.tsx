@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Card, Table, message, Tag, Button, Modal, Form, Input, InputNumber, Select, Popconfirm } from 'antd';
+import { Card, Table, message, Tag, Button, Modal, Form, Input, InputNumber, Select, Popconfirm, Row, Col, Space, Divider } from 'antd';
 import { productApi } from '../../api/product';
 import type { Product, ProductVO } from '../../types';
 
@@ -12,6 +12,12 @@ const ProductList: React.FC = () => {
   const [modalVisible, setModalVisible] = useState(false);
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
   const [form] = Form.useForm();
+  const [filterForm] = Form.useForm();
+  const [showAdvancedFilter, setShowAdvancedFilter] = useState(false);
+  const localUser = localStorage.getItem('user');
+  const user = localUser ? JSON.parse(localUser) : null;
+  const isAdmin = !!user && Number(user.roleId || user.role_id) === 1;
+  const isUser = !!user && Number(user.roleId || user.role_id) === 2;
 
   const statusColorMap: Record<string, string> = {
     ACTIVE: 'green',
@@ -46,7 +52,7 @@ const ProductList: React.FC = () => {
     fetchData();
   }, []);
 
-  const fetchData = async () => {
+  const fetchData = async (filters?: any) => {
     try {
       setLoading(true);
       // 优先使用VO接口
@@ -85,6 +91,12 @@ const ProductList: React.FC = () => {
       ) {
         arr = (response.data.data as any).content;
       } else arr = [];
+      
+      // 应用筛选条件
+      if (filters) {
+        arr = applyFilters(arr, filters);
+      }
+      
       setData(arr);
     } catch (error) {
       // 如果VO接口失败，回退到普通接口
@@ -100,6 +112,12 @@ const ProductList: React.FC = () => {
         ) {
           arr = (response.data.data as any).content;
         } else arr = [];
+        
+        // 应用筛选条件
+        if (filters) {
+          arr = applyFilters(arr, filters);
+        }
+        
         setData(arr);
       } catch (fallbackError) {
         message.error('获取产品列表失败');
@@ -108,6 +126,83 @@ const ProductList: React.FC = () => {
     } finally {
       setLoading(false);
     }
+  };
+
+  // 应用筛选条件
+  const applyFilters = (products: Product[], filters: any) => {
+    return products.filter(product => {
+      // 产品类型筛选
+      if (filters.productType && product.productType !== filters.productType) {
+        return false;
+      }
+      
+      // 风险等级筛选
+      if (filters.riskLevel && product.riskLevel !== filters.riskLevel) {
+        return false;
+      }
+      
+      // 投资期限筛选
+      if (filters.investmentHorizon && product.investmentHorizon !== filters.investmentHorizon) {
+        return false;
+      }
+      
+      // 目标收益率范围筛选
+      if (filters.targetReturnRange && product.targetReturn) {
+        const [min, max] = filters.targetReturnRange;
+        if (product.targetReturn < min || product.targetReturn > max) {
+          return false;
+        }
+      }
+      
+      // 最大回撤范围筛选
+      if (filters.maxDrawdownRange && product.maxDrawdown) {
+        const [min, max] = filters.maxDrawdownRange;
+        if (product.maxDrawdown < min || product.maxDrawdown > max) {
+          return false;
+        }
+      }
+      
+      // 最小投资金额范围筛选
+      if (filters.minInvestmentRange && product.minInvestment) {
+        const [min, max] = filters.minInvestmentRange;
+        if (product.minInvestment < min || product.minInvestment > max) {
+          return false;
+        }
+      }
+      
+      // 管理费率范围筛选
+      if (filters.managementFeeRange && product.managementFee) {
+        const [min, max] = filters.managementFeeRange;
+        if (product.managementFee < min || product.managementFee > max) {
+          return false;
+        }
+      }
+      
+      // 状态筛选
+      if (filters.status && product.status !== filters.status) {
+        return false;
+      }
+      
+      // 关键词搜索
+      if (filters.keyword) {
+        const keyword = filters.keyword.toLowerCase();
+        const searchFields = [
+          product.productCode,
+          product.productName,
+          product.description
+        ].filter(Boolean);
+        
+        const hasMatch = searchFields.some(field => 
+          field && field.toLowerCase().includes(keyword)
+        );
+        
+        if (!hasMatch) {
+          return false;
+        }
+      }
+      
+      return true;
+    });
   };
 
   const handleAdd = () => {
@@ -146,6 +241,33 @@ const ProductList: React.FC = () => {
       fetchData();
     } catch (e) {
       // 校验失败或接口异常
+    }
+  };
+
+  // 筛选处理
+  const handleFilter = async () => {
+    try {
+      const values = await filterForm.validateFields();
+      await fetchData(values);
+      message.success('筛选完成');
+    } catch (e) {
+      // 校验失败
+    }
+  };
+
+  // 重置筛选
+  const handleResetFilter = () => {
+    filterForm.resetFields();
+    fetchData();
+    message.success('筛选条件已重置');
+  };
+
+  const handleSubmitReview = async (productId: number) => {
+    try {
+      await productApi.submitReview(productId);
+      message.success('提交审核申请成功');
+    } catch (e) {
+      message.error('提交审核失败');
     }
   };
 
@@ -233,6 +355,9 @@ const ProductList: React.FC = () => {
       key: 'action',
       render: (_: any, record: Product) => (
         <>
+          {isUser && (
+            <Button type="link" onClick={() => handleSubmitReview(record.id)}>提交审核</Button>
+          )}
           <Button type="link" onClick={() => handleEdit(record)}>编辑</Button>
           <Popconfirm title="确定要删除该产品吗？" onConfirm={() => handleDelete(record.id)} okText="确定" cancelText="取消">
             <Button type="link" danger>删除</Button>
@@ -244,6 +369,127 @@ const ProductList: React.FC = () => {
 
   return (
     <Card title="产品管理" extra={<Button type="primary" onClick={handleAdd}>新增产品</Button>}>
+      {/* 高级筛选区域 */}
+      <Card size="small" style={{ marginBottom: 16 }}>
+        <Form form={filterForm} layout="horizontal">
+          <Row gutter={16}>
+            <Col span={6}>
+              <Form.Item label="关键词搜索" name="keyword">
+                <Input placeholder="产品代码/名称/描述" allowClear />
+              </Form.Item>
+            </Col>
+            <Col span={6}>
+              <Form.Item label="产品类型" name="productType">
+                <Select placeholder="请选择产品类型" allowClear>
+                  {productTypeOptions.map(option => (
+                    <Option key={option.value} value={option.value}>{option.label}</Option>
+                  ))}
+                </Select>
+              </Form.Item>
+            </Col>
+            <Col span={6}>
+              <Form.Item label="风险等级" name="riskLevel">
+                <Select placeholder="请选择风险等级" allowClear>
+                  {riskLevelOptions.map(option => (
+                    <Option key={option.value} value={option.value}>{option.label}</Option>
+                  ))}
+                </Select>
+              </Form.Item>
+            </Col>
+            <Col span={6}>
+              <Form.Item label="投资期限" name="investmentHorizon">
+                <Select placeholder="请选择投资期限" allowClear>
+                  {investmentHorizonOptions.map(option => (
+                    <Option key={option.value} value={option.value}>{option.label}</Option>
+                  ))}
+                </Select>
+              </Form.Item>
+            </Col>
+          </Row>
+          
+          {showAdvancedFilter && (
+            <>
+              <Divider />
+              <Row gutter={16}>
+                <Col span={6}>
+                  <Form.Item label="目标收益率范围(%)" name="targetReturnRange">
+                    <Input.Group compact>
+                      <Form.Item name={['targetReturnRange', 0]} noStyle>
+                        <InputNumber placeholder="最小值" style={{ width: '50%' }} />
+                      </Form.Item>
+                      <Form.Item name={['targetReturnRange', 1]} noStyle>
+                        <InputNumber placeholder="最大值" style={{ width: '50%' }} />
+                      </Form.Item>
+                    </Input.Group>
+                  </Form.Item>
+                </Col>
+                <Col span={6}>
+                  <Form.Item label="最大回撤范围(%)" name="maxDrawdownRange">
+                    <Input.Group compact>
+                      <Form.Item name={['maxDrawdownRange', 0]} noStyle>
+                        <InputNumber placeholder="最小值" style={{ width: '50%' }} />
+                      </Form.Item>
+                      <Form.Item name={['maxDrawdownRange', 1]} noStyle>
+                        <InputNumber placeholder="最大值" style={{ width: '50%' }} />
+                      </Form.Item>
+                    </Input.Group>
+                  </Form.Item>
+                </Col>
+                <Col span={6}>
+                  <Form.Item label="最小投资金额范围" name="minInvestmentRange">
+                    <Input.Group compact>
+                      <Form.Item name={['minInvestmentRange', 0]} noStyle>
+                        <InputNumber placeholder="最小值" style={{ width: '50%' }} />
+                      </Form.Item>
+                      <Form.Item name={['minInvestmentRange', 1]} noStyle>
+                        <InputNumber placeholder="最大值" style={{ width: '50%' }} />
+                      </Form.Item>
+                    </Input.Group>
+                  </Form.Item>
+                </Col>
+                <Col span={6}>
+                  <Form.Item label="管理费率范围(%)" name="managementFeeRange">
+                    <Input.Group compact>
+                      <Form.Item name={['managementFeeRange', 0]} noStyle>
+                        <InputNumber placeholder="最小值" style={{ width: '50%' }} />
+                      </Form.Item>
+                      <Form.Item name={['managementFeeRange', 1]} noStyle>
+                        <InputNumber placeholder="最大值" style={{ width: '50%' }} />
+                      </Form.Item>
+                    </Input.Group>
+                  </Form.Item>
+                </Col>
+              </Row>
+              <Row gutter={16}>
+                <Col span={6}>
+                  <Form.Item label="状态" name="status">
+                    <Select placeholder="请选择状态" allowClear>
+                      <Option value="ACTIVE">正常</Option>
+                      <Option value="INACTIVE">停用</Option>
+                    </Select>
+                  </Form.Item>
+                </Col>
+              </Row>
+            </>
+          )}
+          
+          <Row>
+            <Col span={24}>
+              <Space>
+                <Button type="primary" onClick={handleFilter}>筛选</Button>
+                <Button onClick={handleResetFilter}>重置</Button>
+                <Button 
+                  type="link" 
+                  onClick={() => setShowAdvancedFilter(!showAdvancedFilter)}
+                >
+                  {showAdvancedFilter ? '收起高级筛选' : '展开高级筛选'}
+                </Button>
+              </Space>
+            </Col>
+          </Row>
+        </Form>
+      </Card>
+
       <Table
         bordered
         columns={columns}
@@ -258,6 +504,7 @@ const ProductList: React.FC = () => {
         scroll={{ x: 'max-content' }}
         rowClassName={(_, idx) => (idx % 2 === 0 ? 'table-row-light' : 'table-row-dark')}
       />
+      
       <Modal
         title={editingProduct ? '编辑产品' : '新增产品'}
         open={modalVisible}

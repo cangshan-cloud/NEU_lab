@@ -102,7 +102,7 @@ const Layout: React.FC<PropsWithChildren> = ({ children }) => {
           label: '策略列表',
         },
         {
-          key: '/strategies/backtests',
+          key: '/strategies/backtest-list',
           label: '策略回测',
         },
       ],
@@ -178,9 +178,12 @@ const Layout: React.FC<PropsWithChildren> = ({ children }) => {
     } else if (pathname.startsWith('/factors')) {
       keys.push('factors');
       keys.push(pathname);
+    } else if (pathname.startsWith('/strategies/backtest-list')) {
+      keys.push('strategies');
+      keys.push('/strategies/backtest-list');
     } else if (pathname.startsWith('/strategies')) {
       keys.push('strategies');
-      keys.push(pathname);
+      keys.push('/strategies');
     } else if (pathname.startsWith('/products')) {
       keys.push('products');
       keys.push(pathname);
@@ -212,8 +215,12 @@ const Layout: React.FC<PropsWithChildren> = ({ children }) => {
           selectedKeys={getSelectedKeys()}
           items={menuItems}
           onClick={({ key }) => {
-            if (key !== 'funds' && key !== 'factors' && key !== 'strategies' && key !== 'products' && key !== 'trades') {
-              window.location.href = key;
+            if (key === '/strategies/backtest-list') {
+              navigate('/strategies/backtest-list');
+            } else if (
+              key !== 'funds' && key !== 'factors' && key !== 'strategies' && key !== 'products' && key !== 'trades'
+            ) {
+              navigate(key);
             }
           }}
         />

@@ -13,6 +13,8 @@ import com.neulab.fund.repository.FofPortfolioRepository;
 import com.neulab.fund.repository.IndexPortfolioRepository;
 import com.neulab.fund.repository.TimingPortfolioRepository;
 import com.neulab.fund.service.StrategyService;
+import com.neulab.fund.vo.StrategyVO;
+import com.neulab.fund.vo.StrategyDTO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -114,81 +116,6 @@ public class StrategyServiceImpl implements StrategyService {
     }
 
     @Override
-    public StrategyBacktest simulateStrategy(Long strategyId, Map<String, Object> simulateConfig) {
-        Strategy strategy = getStrategyById(strategyId);
-        if (strategy == null) {
-            return null;
-        }
-        
-        StrategyBacktest simulation = new StrategyBacktest();
-        simulation.setStrategyId(strategyId);
-        simulation.setBacktestType("SIMULATION");
-        
-        // 转换日期字符串为LocalDate
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
-        simulation.setStartDate(LocalDate.parse((String) simulateConfig.get("startDate"), formatter));
-        simulation.setEndDate(LocalDate.parse((String) simulateConfig.get("endDate"), formatter));
-        simulation.setInitialCapital((Double) simulateConfig.get("initialCapital"));
-        
-        // 执行模拟计算
-        Map<String, Object> results = executeSimulation(strategy, simulateConfig);
-        simulation.setTotalReturn((Double) results.get("totalReturn"));
-        simulation.setAnnualReturn((Double) results.get("annualReturn"));
-        simulation.setMaxDrawdown((Double) results.get("maxDrawdown"));
-        simulation.setSharpeRatio((Double) results.get("sharpeRatio"));
-        simulation.setResults(results.toString());
-        simulation.setStatus("COMPLETED");
-        simulation.setCreatedAt(LocalDateTime.now());
-        
-        return strategyBacktestRepository.save(simulation);
-    }
-
-    @Override
-    public boolean rebalanceStrategy(Long strategyId, Map<String, Object> rebalanceConfig) {
-        try {
-            Strategy strategy = getStrategyById(strategyId);
-            if (strategy == null) {
-                return false;
-            }
-            
-            // 执行再平衡逻辑
-            Map<String, Object> rebalanceResults = executeRebalance(strategy, rebalanceConfig);
-            
-            // 更新策略权重
-            strategy.setParameters(rebalanceResults.toString());
-            updateStrategy(strategy);
-            
-            return true;
-        } catch (Exception e) {
-            e.printStackTrace();
-            return false;
-        }
-    }
-
-    @Override
-    public Map<String, Object> monitorStrategy(Long strategyId) {
-        Strategy strategy = getStrategyById(strategyId);
-        if (strategy == null) {
-            return null;
-        }
-        
-        Map<String, Object> monitorData = new HashMap<>();
-        monitorData.put("strategy", strategy);
-        
-        // 获取最新回测结果
-        List<StrategyBacktest> backtests = getStrategyBacktests(strategyId);
-        if (!backtests.isEmpty()) {
-            monitorData.put("latestBacktest", backtests.get(0));
-        }
-        
-        // 计算监控指标
-        Map<String, Object> metrics = calculateMonitorMetrics(strategy);
-        monitorData.put("metrics", metrics);
-        
-        return monitorData;
-    }
-
-    @Override
     public List<StrategyBacktest> getStrategyBacktests(Long strategyId) {
         return strategyBacktestRepository.findByStrategyIdOrderByCreatedAtDesc(strategyId);
     }
@@ -265,8 +192,8 @@ public class StrategyServiceImpl implements StrategyService {
     @Override
     public Strategy createAssetAllocationStrategy(Map<String, Object> strategyConfig) {
         Strategy strategy = new Strategy();
-        strategy.setName((String) strategyConfig.get("name"));
-        strategy.setType("ASSET_ALLOCATION");
+        strategy.setStrategyName((String) strategyConfig.get("name"));
+        strategy.setStrategyType("ASSET_ALLOCATION");
         strategy.setDescription((String) strategyConfig.get("description"));
         strategy.setParameters(strategyConfig.toString());
         strategy.setStatus("ACTIVE");
@@ -329,23 +256,6 @@ public class StrategyServiceImpl implements StrategyService {
     }
     
     /**
-     * 执行模拟计算
-     */
-    private Map<String, Object> executeSimulation(Strategy strategy, Map<String, Object> config) {
-        Map<String, Object> results = new HashMap<>();
-        
-        // 这里实现模拟计算逻辑
-        // 基于历史数据或蒙特卡洛模拟
-        
-        results.put("totalReturn", 0.12);
-        results.put("annualReturn", 0.06);
-        results.put("maxDrawdown", -0.08);
-        results.put("sharpeRatio", 0.9);
-        
-        return results;
-    }
-    
-    /**
      * 执行再平衡逻辑
      */
     private Map<String, Object> executeRebalance(Strategy strategy, Map<String, Object> config) {
@@ -375,5 +285,106 @@ public class StrategyServiceImpl implements StrategyService {
         metrics.put("deviation", 0.02);
         
         return metrics;
+    }
+
+    @Override
+    public Page<StrategyVO> pageList(String keyword, String type, String riskLevel, String status, Pageable pageable) {
+        // 支持条件筛选
+        return strategyRepository.findAll((root, query, cb) -> {
+            var predicates = new java.util.ArrayList<>();
+            if (keyword != null && !keyword.isEmpty()) {
+                predicates.add(cb.or(
+                    cb.like(root.get("strategyCode"), "%" + keyword + "%"),
+                    cb.like(root.get("strategyName"), "%" + keyword + "%"),
+                    cb.like(root.get("description"), "%" + keyword + "%")
+                ));
+            }
+            if (type != null && !type.isEmpty()) {
+                predicates.add(cb.equal(root.get("strategyType"), type));
+            }
+            if (riskLevel != null && !riskLevel.isEmpty()) {
+                predicates.add(cb.equal(root.get("riskLevel"), riskLevel));
+            }
+            if (status != null && !status.isEmpty()) {
+                predicates.add(cb.equal(root.get("status"), status));
+            }
+            return cb.and(predicates.toArray(new jakarta.persistence.criteria.Predicate[0]));
+        }, pageable).map(this::toVO);
+    }
+
+    @Override
+    public StrategyVO getStrategyVOById(Long id) {
+        Strategy strategy = getStrategyById(id);
+        return strategy == null ? null : toVO(strategy);
+    }
+
+    @Override
+    public StrategyVO createStrategy(StrategyDTO dto) {
+        Strategy entity = fromDTO(dto);
+        entity.setCreatedAt(java.time.LocalDateTime.now());
+        entity.setUpdatedAt(java.time.LocalDateTime.now());
+        Strategy saved = strategyRepository.save(entity);
+        return toVO(saved);
+    }
+
+    @Override
+    public StrategyVO updateStrategy(Long id, StrategyDTO dto) {
+        Strategy entity = getStrategyById(id);
+        if (entity == null) return null;
+        updateEntityFromDTO(entity, dto);
+        entity.setUpdatedAt(java.time.LocalDateTime.now());
+        Strategy saved = strategyRepository.save(entity);
+        return toVO(saved);
+    }
+
+    // DTO转实体
+    private Strategy fromDTO(StrategyDTO dto) {
+        Strategy s = new Strategy();
+        s.setStrategyCode(dto.getStrategyCode());
+        s.setStrategyName(dto.getStrategyName());
+        s.setStrategyType(dto.getStrategyType());
+        s.setRiskLevel(dto.getRiskLevel());
+        s.setTargetReturn(dto.getTargetReturn());
+        s.setMaxDrawdown(dto.getMaxDrawdown());
+        s.setInvestmentHorizon(dto.getInvestmentHorizon());
+        s.setDescription(dto.getDescription());
+        s.setFactorTreeId(dto.getFactorTreeId());
+        s.setParameters(dto.getParameters());
+        s.setStatus(dto.getStatus());
+        return s;
+    }
+    // 实体转VO
+    private StrategyVO toVO(Strategy s) {
+        if (s == null) return null;
+        StrategyVO vo = new StrategyVO();
+        vo.setId(s.getId());
+        vo.setStrategyCode(s.getStrategyCode());
+        vo.setStrategyName(s.getStrategyName());
+        vo.setStrategyType(s.getStrategyType());
+        vo.setRiskLevel(s.getRiskLevel());
+        vo.setTargetReturn(s.getTargetReturn());
+        vo.setMaxDrawdown(s.getMaxDrawdown());
+        vo.setInvestmentHorizon(s.getInvestmentHorizon());
+        vo.setDescription(s.getDescription());
+        vo.setFactorTreeId(s.getFactorTreeId());
+        vo.setParameters(s.getParameters());
+        vo.setStatus(s.getStatus());
+        vo.setCreatedAt(s.getCreatedAt());
+        vo.setUpdatedAt(s.getUpdatedAt());
+        return vo;
+    }
+    // 更新实体
+    private void updateEntityFromDTO(Strategy s, StrategyDTO dto) {
+        s.setStrategyCode(dto.getStrategyCode());
+        s.setStrategyName(dto.getStrategyName());
+        s.setStrategyType(dto.getStrategyType());
+        s.setRiskLevel(dto.getRiskLevel());
+        s.setTargetReturn(dto.getTargetReturn());
+        s.setMaxDrawdown(dto.getMaxDrawdown());
+        s.setInvestmentHorizon(dto.getInvestmentHorizon());
+        s.setDescription(dto.getDescription());
+        s.setFactorTreeId(dto.getFactorTreeId());
+        s.setParameters(dto.getParameters());
+        s.setStatus(dto.getStatus());
     }
 } 

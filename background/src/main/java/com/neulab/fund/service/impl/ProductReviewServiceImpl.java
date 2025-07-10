@@ -5,6 +5,7 @@ import com.neulab.fund.repository.ProductReviewRepository;
 import com.neulab.fund.service.ProductReviewService;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 /**
@@ -31,5 +32,74 @@ public class ProductReviewServiceImpl implements ProductReviewService {
     @Override
     public ProductReview createReview(ProductReview review) {
         return productReviewRepository.save(review);
+    }
+
+    @Override
+    public ProductReview updateReview(ProductReview review) {
+        return productReviewRepository.save(review);
+    }
+
+    @Override
+    public void deleteReview(Long id) {
+        productReviewRepository.deleteById(id);
+    }
+
+    @Override
+    public List<ProductReview> getReviewsByProductId(Long productId) {
+        return productReviewRepository.findByProductId(productId);
+    }
+
+    @Override
+    public List<ProductReview> getReviewsByStatus(String status) {
+        return productReviewRepository.findByReviewStatus(status);
+    }
+
+    @Override
+    public List<ProductReview> getReviewsByReviewerId(Long reviewerId) {
+        return productReviewRepository.findByReviewerId(reviewerId);
+    }
+
+    @Override
+    public ProductReview submitForReview(ProductReview review) {
+        review.setReviewStatus("PENDING");
+        review.setCreatedAt(LocalDateTime.now());
+        review.setUpdatedAt(LocalDateTime.now());
+        return productReviewRepository.save(review);
+    }
+
+    @Override
+    public ProductReview approveReview(Long id, ProductReview review) {
+        ProductReview existingReview = productReviewRepository.findById(id).orElse(null);
+        if (existingReview != null) {
+            existingReview.setReviewStatus("APPROVED");
+            existingReview.setReviewComment(review.getReviewComment());
+            existingReview.setReviewDate(LocalDateTime.now());
+            existingReview.setUpdatedAt(LocalDateTime.now());
+            return productReviewRepository.save(existingReview);
+        }
+        return null;
+    }
+
+    @Override
+    public ProductReview rejectReview(Long id, ProductReview review) {
+        ProductReview existingReview = productReviewRepository.findById(id).orElse(null);
+        if (existingReview != null) {
+            existingReview.setReviewStatus("REJECTED");
+            existingReview.setReviewComment(review.getReviewComment());
+            existingReview.setReviewDate(LocalDateTime.now());
+            existingReview.setUpdatedAt(LocalDateTime.now());
+            return productReviewRepository.save(existingReview);
+        }
+        return null;
+    }
+
+    @Override
+    public List<ProductReview> getPendingReviews() {
+        return productReviewRepository.findByReviewStatus("PENDING");
+    }
+
+    @Override
+    public List<ProductReview> getReviewHistory(Long productId) {
+        return productReviewRepository.findByProductIdOrderByCreatedAtDesc(productId);
     }
 } 

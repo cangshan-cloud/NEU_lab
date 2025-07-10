@@ -36,8 +36,8 @@ const UserList: React.FC = () => {
     setMsg('已删除');
     fetchUsers();
   };
-  const handleRoleChange = async (id: number, roleName: string) => {
-    await updateUserRole(id, roleName);
+  const handleRoleChange = async (id: number, roleId: number) => {
+    await updateUserRole(id, roleId);
     setMsg('角色已修改');
     fetchUsers();
   };
@@ -85,8 +85,8 @@ const UserList: React.FC = () => {
               <td style={{ border: '1px solid #eee', padding: 8 }}>{u.id}</td>
               <td style={{ border: '1px solid #eee', padding: 8 }}>{u.username}</td>
               <td style={{ border: '1px solid #eee', padding: 8 }}>
-                <select value={u.roleName} onChange={e => handleRoleChange(u.id, e.target.value)} style={{ padding: 4 }}>
-                  {roles.map((r: any) => <option key={r.id} value={r.roleName}>{r.roleName}</option>)}
+                <select value={u.role_id} onChange={e => handleRoleChange(u.id, Number(e.target.value))} style={{ padding: 4 }}>
+                  {roles.map((r: any) => <option key={r.id} value={r.id}>{r.roleName}</option>)}
                 </select>
               </td>
               <td style={{ border: '1px solid #eee', padding: 8 }}>{u.realName}</td>
