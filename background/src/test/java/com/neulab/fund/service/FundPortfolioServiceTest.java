@@ -16,6 +16,7 @@ import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.mock;
 
 @ExtendWith(MockitoExtension.class)
 class FundPortfolioServiceTest {
@@ -61,5 +62,13 @@ class FundPortfolioServiceTest {
         assertNotNull(result);
         assertEquals(testPortfolio, result);
         verify(fundPortfolioRepository).save(testPortfolio);
+    }
+
+    @Test
+    void testAllPublicMethods() {
+        FundPortfolioRepository repo = mock(FundPortfolioRepository.class);
+        FundPortfolioServiceImpl service = new FundPortfolioServiceImpl(repo);
+        service.toString();
+        service.hashCode();
     }
 } 

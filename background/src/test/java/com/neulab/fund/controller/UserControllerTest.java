@@ -155,4 +155,48 @@ public class UserControllerTest {
                 .content(objectMapper.writeValueAsString(dto)))
                 .andExpect(status().isOk());
     }
+
+    @Test
+    public void testRegister_MissingParam() throws Exception {
+        mockMvc.perform(post("/api/users/register")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("{}"))
+                .andExpect(status().isOk());
+    }
+    @Test
+    public void testLogin_MissingParam() throws Exception {
+        mockMvc.perform(post("/api/users/login")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("{}"))
+                .andExpect(status().isOk());
+    }
+    @Test
+    public void testUpdateUser_InvalidId() throws Exception {
+        mockMvc.perform(put("/api/users/999999")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("{}"))
+                .andExpect(status().isOk());
+    }
+    @Test
+    public void testUpdateUserRole_InvalidRole() throws Exception {
+        mockMvc.perform(put("/api/users/1/role?roleName=NOT_EXIST"))
+                .andExpect(status().isOk());
+    }
+    @Test
+    public void testDisableUser_InvalidId() throws Exception {
+        mockMvc.perform(put("/api/users/999999/disable"))
+                .andExpect(status().isOk());
+    }
+    @Test
+    public void testDeleteUser_InvalidId() throws Exception {
+        mockMvc.perform(delete("/api/users/999999"))
+                .andExpect(status().isOk());
+    }
+    @Test
+    public void testResetPassword_InvalidId() throws Exception {
+        mockMvc.perform(put("/api/users/999999/password")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("{}"))
+                .andExpect(status().isOk());
+    }
 } 

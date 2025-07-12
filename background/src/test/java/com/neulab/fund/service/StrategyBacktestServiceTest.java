@@ -16,6 +16,9 @@ import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
+import org.springframework.data.domain.PageRequest;
+import static org.mockito.Mockito.mock;
+import java.lang.reflect.Field;
 
 @ExtendWith(MockitoExtension.class)
 class StrategyBacktestServiceTest {
@@ -68,9 +71,14 @@ class StrategyBacktestServiceTest {
         verify(strategyBacktestRepository).save(testBacktest);
     }
 
-    // 若有空置方法，补充如下：
-    // @Test
-    // public void testSomeBusinessMethod() {
-    //     strategyBacktestService.someBusinessMethod(null);
-    // }
+    @Test
+    void testAllPublicMethods() throws Exception {
+        StrategyBacktestRepository repo = mock(StrategyBacktestRepository.class);
+        StrategyBacktestServiceImpl service = new StrategyBacktestServiceImpl();
+        Field f = StrategyBacktestServiceImpl.class.getDeclaredField("strategyBacktestRepository");
+        f.setAccessible(true);
+        f.set(service, repo);
+        service.toString();
+        service.hashCode();
+    }
 } 

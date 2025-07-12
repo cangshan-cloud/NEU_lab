@@ -1,5 +1,6 @@
 package com.neulab.fund.service;
 
+import com.neulab.fund.entity.Role;
 import com.neulab.fund.entity.User;
 import com.neulab.fund.repository.UserRepository;
 import com.neulab.fund.service.impl.UserServiceImpl;
@@ -28,6 +29,9 @@ class UserServiceTest {
     
     @Mock
     private JwtUtil jwtUtil;
+    
+    @Mock
+    private RoleService roleService;
     
     @InjectMocks
     private UserServiceImpl userService;
@@ -189,5 +193,145 @@ class UserServiceTest {
     public void testResetPassword() {
         when(userRepository.findById(1L)).thenReturn(Optional.empty());
         assertThrows(IllegalArgumentException.class, () -> userService.resetPassword(1L, null));
+    }
+    @Test
+    void testUpdateUserRole_Success() {
+        User user = new User();
+        user.setId(1L);
+        user.setUsername("testuser");
+        when(userRepository.findById(1L)).thenReturn(Optional.of(user));
+        Role role = new Role();
+        role.setId(2L);
+        role.setRoleName("USER");
+        when(roleService.findByRoleName("USER")).thenReturn(role);
+        UserVO vo = userService.updateUserRole(1L, "USER");
+        assertNotNull(vo);
+        assertEquals("testuser", vo.getUsername());
+        assertEquals(2L, vo.getRoleId());
+    }
+    @Test
+    void testResetPassword_Success() {
+        User user = new User();
+        user.setId(1L);
+        user.setPassword("old");
+        when(userRepository.findById(1L)).thenReturn(Optional.of(user));
+        when(passwordEncoder.encode("newpass")).thenReturn("encoded");
+        com.neulab.fund.vo.UserResetPasswordDTO dto = new com.neulab.fund.vo.UserResetPasswordDTO();
+        dto.setNewPassword("newpass");
+        UserVO vo = userService.resetPassword(1L, dto);
+        assertNotNull(vo);
+    }
+    @Test
+    void testDisableUser_Success() {
+        User user = new User();
+        user.setId(1L);
+        user.setStatus("ACTIVE");
+        when(userRepository.findById(1L)).thenReturn(Optional.of(user));
+        UserVO vo = userService.disableUser(1L);
+        assertNotNull(vo);
+        assertEquals("INACTIVE", vo.getStatus());
+    }
+    @Test
+    void testDeleteUser_Success() {
+        when(userRepository.existsById(1L)).thenReturn(true);
+        doNothing().when(userRepository).deleteById(1L);
+        assertDoesNotThrow(() -> userService.deleteUser(1L));
+    }
+    @Test
+    void testRegister_NullDto() {
+        assertThrows(NullPointerException.class, () -> userService.register(null));
+    }
+    @Test
+    void testRegister_NullUsername() {
+        UserRegisterDTO dto = new UserRegisterDTO();
+        dto.setUsername(null);
+        dto.setPassword("123");
+        assertNull(userService.register(dto));
+    }
+    @Test
+    void testRegister_NullPassword() {
+        UserRegisterDTO dto = new UserRegisterDTO();
+        dto.setUsername("user");
+        dto.setPassword(null);
+        when(userRepository.findByUsername("user")).thenReturn(Optional.empty());
+        assertNull(userService.register(dto));
+    }
+    @Test
+    void testUpdateUser_NullDtoButUserExists() {
+        User user = new User();
+        user.setId(1L);
+        when(userRepository.findById(1L)).thenReturn(Optional.of(user));
+        assertThrows(NullPointerException.class, () -> userService.updateUser(1L, null));
+    }
+    @Test
+    void testListUsers_AllNull() {
+        org.springframework.data.domain.Pageable pageable = org.springframework.data.domain.PageRequest.of(0, 10);
+        when(userRepository.findAll(pageable)).thenReturn(new org.springframework.data.domain.PageImpl<>(java.util.Collections.emptyList()));
+        assertNotNull(userService.listUsers(null, null, null, pageable));
+    }
+    @Test
+    void testListUsers_KeywordMatch() {
+        org.springframework.data.domain.Pageable pageable = org.springframework.data.domain.PageRequest.of(0, 10);
+        User user = new User();
+        user.setUsername("abc");
+        when(userRepository.findAll(pageable)).thenReturn(new org.springframework.data.domain.PageImpl<>(java.util.List.of(user)));
+        assertNotNull(userService.listUsers(null, null, "a", pageable));
+    }
+    @Test
+    void testToUserVO_NullUser() {
+        assertNull(userService.toUserVO(null));
+    }
+    @Test
+    void testToUserVO_RoleIdNull() {
+        User user = new User();
+        user.setId(1L);
+        user.setRoleId(null);
+        assertNotNull(userService.toUserVO(user));
+    }
+    @Test
+    void testToUserVO_RoleServiceReturnNull() {
+        User user = new User();
+        user.setId(1L);
+        user.setRoleId(2L);
+        when(roleService.findById(2L)).thenReturn(null);
+        assertNotNull(userService.toUserVO(user));
+    }
+    @Test
+    void testBindManager_NullManagerId() {
+        User user = new User();
+        user.setId(1L);
+        when(userRepository.findById(1L)).thenReturn(Optional.of(user));
+        assertDoesNotThrow(() -> userService.bindManager(1L, null));
+    }
+    @Test
+    void testBindCompany_NullCompanyId() {
+        User user = new User();
+        user.setId(1L);
+        when(userRepository.findById(1L)).thenReturn(Optional.of(user));
+        assertDoesNotThrow(() -> userService.bindCompany(1L, null));
+    }
+    @Test
+    void testUpdateUserRole_NullRoleName() {
+        User user = new User();
+        user.setId(1L);
+        when(userRepository.findById(1L)).thenReturn(Optional.of(user));
+        when(roleService.findByRoleName(null)).thenReturn(null);
+        assertThrows(IllegalArgumentException.class, () -> userService.updateUserRole(1L, null));
+    }
+    @Test
+    void testResetPassword_NullDto() {
+        User user = new User();
+        user.setId(1L);
+        when(userRepository.findById(1L)).thenReturn(Optional.of(user));
+        assertThrows(NullPointerException.class, () -> userService.resetPassword(1L, null));
+    }
+    @Test
+    void testResetPassword_NullPassword() {
+        User user = new User();
+        user.setId(1L);
+        when(userRepository.findById(1L)).thenReturn(Optional.of(user));
+        com.neulab.fund.vo.UserResetPasswordDTO dto = new com.neulab.fund.vo.UserResetPasswordDTO();
+        dto.setNewPassword(null);
+        assertDoesNotThrow(() -> userService.resetPassword(1L, dto));
     }
 } 

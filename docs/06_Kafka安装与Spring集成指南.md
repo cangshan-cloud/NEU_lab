@@ -123,5 +123,3 @@ public class AiProfileTaskConsumer {
 - [Bitnami Kafka 镜像文档](https://hub.docker.com/r/bitnami/kafka)
 
 ---
-
-如需更详细的 Kafka 主题管理、分区、副本、监控等高级用法，请联系开发负责人或查阅官方文档。 

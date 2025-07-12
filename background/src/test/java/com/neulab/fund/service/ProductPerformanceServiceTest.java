@@ -71,9 +71,10 @@ class ProductPerformanceServiceTest {
         verify(productPerformanceRepository).save(testPerformance);
     }
 
-    // 若有空置方法，补充如下：
-    // @Test
-    // public void testSomeBusinessMethod() {
-    //     productPerformanceService.someBusinessMethod(null);
-    // }
+    @Test
+    void testAllPublicMethods() {
+        assertDoesNotThrow(() -> productPerformanceService.getAllPerformances());
+        assertDoesNotThrow(() -> productPerformanceService.getPerformanceById(null));
+        assertDoesNotThrow(() -> productPerformanceService.createPerformance(null));
+    }
 } 

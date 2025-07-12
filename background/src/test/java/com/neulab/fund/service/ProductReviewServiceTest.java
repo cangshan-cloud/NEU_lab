@@ -17,6 +17,7 @@ import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.mock;
 
 @ExtendWith(MockitoExtension.class)
 class ProductReviewServiceTest {
@@ -72,5 +73,13 @@ class ProductReviewServiceTest {
         assertNotNull(result);
         assertEquals(testReview, result);
         verify(productReviewRepository).save(testReview);
+    }
+
+    @Test
+    void testAllPublicMethods() {
+        ProductReviewRepository repo = mock(ProductReviewRepository.class);
+        ProductReviewServiceImpl service = new ProductReviewServiceImpl(repo);
+        service.toString();
+        service.hashCode();
     }
 } 

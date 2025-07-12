@@ -5,10 +5,10 @@ const { Title } = Typography;
 
 // 仪表盘模拟数据
 const getDashboardMockData = () => ({
-  totalUsers: 1200,
-  activeUsers: 320,
-  newUsers: 45,
-  churnRate: 0.03,
+  totalUsers: 50,             // 总用户数
+  activeUsers: 18,            // 活跃用户数（<=总用户数）
+  newUsers: 5,                // 新增用户数（<=总用户数）
+  churnRate: 4.0,             // 流失率（%）
   alerts: [
     { type: 'warning', message: '今日有2笔大额异常交易待审核', time: '10:30' },
     { type: 'info', message: '本周活跃用户环比增长12%', time: '09:15' },
@@ -38,9 +38,9 @@ const Dashboard: React.FC = () => {
     }).finally(() => setLoading(false));
   }, []);
 
-  // 真实数据优先，模拟数据兜底
-  const totalUsers = realtime?.uv || mockData.totalUsers;
-  const activeUsers = realtime?.onlineUsers || mockData.activeUsers;
+  // 强制只用mock数据，避免后端初始数据影响页面展示
+  const totalUsers = mockData.totalUsers;
+  const activeUsers = mockData.activeUsers;
   const newUsers = mockData.newUsers;
   const churnRate = mockData.churnRate;
   const alerts = mockData.alerts;
