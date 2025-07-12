@@ -2,12 +2,18 @@ import React, { useEffect, useState } from 'react';
 import { Card, Table, message, Tag, Button, Modal, Form, Input, Select, Popconfirm, Row, Col, Space, Tabs } from 'antd';
 import { productReviewApi } from '../../api/product';
 import type { ProductReview, Product } from '../../types';
+import { useTrackEvent } from '../../utils/request';
 
 const { Option } = Select;
 const { TextArea } = Input;
 const { TabPane } = Tabs;
 
 const ProductReviewList: React.FC = () => {
+  const track = useTrackEvent();
+  useEffect(() => {
+    track('view', '/product-reviews');
+  }, [track]);
+  // 审核、筛选、导出、查看详情等操作可用track('click', '/product-reviews', { buttonId: 'review' })等
   const [data, setData] = useState<ProductReview[]>([]);
   const [loading, setLoading] = useState(false);
   const [modalVisible, setModalVisible] = useState(false);
@@ -71,6 +77,12 @@ const ProductReviewList: React.FC = () => {
       ) {
         arr = (response.data.data as any).content;
       } else arr = [];
+      // 兼容 created_at/updated_at 字段
+      arr = arr.map((vo: any) => ({
+        ...vo,
+        createdAt: vo.createdAt || vo.created_at,
+        updatedAt: vo.updatedAt || vo.updated_at,
+      }));
       setData(arr);
     } catch (error) {
       message.error('获取审核列表失败');
@@ -168,8 +180,8 @@ const ProductReviewList: React.FC = () => {
     },
     { title: '审核意见', dataIndex: 'reviewComment', key: 'reviewComment' },
     { title: '审核时间', dataIndex: 'reviewDate', key: 'reviewDate' },
-    { title: '创建时间', dataIndex: 'createdAt', key: 'createdAt' },
-    { title: '更新时间', dataIndex: 'updatedAt', key: 'updatedAt' },
+    { title: '创建时间', dataIndex: 'createdAt', key: 'createdAt', render: (text: string) => text ? new Date(text).toLocaleString() : '-' },
+    { title: '更新时间', dataIndex: 'updatedAt', key: 'updatedAt', render: (text: string) => text ? new Date(text).toLocaleString() : '-' },
     {
       title: '操作',
       key: 'action',

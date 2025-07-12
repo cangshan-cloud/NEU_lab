@@ -29,8 +29,12 @@ public class UserController {
      */
     @PostMapping("/register")
     public ApiResponse register(@RequestBody UserRegisterDTO dto) {
-        User saved = userService.register(dto);
-        return ApiResponse.success(saved);
+        try {
+            User saved = userService.register(dto);
+            return ApiResponse.success(saved);
+        } catch (IllegalArgumentException e) {
+            return new ApiResponse<>(1, e.getMessage(), null);
+        }
     }
 
     /**
@@ -38,13 +42,17 @@ public class UserController {
      */
     @PostMapping("/login")
     public ApiResponse login(@RequestBody UserLoginDTO dto) {
-        UserVO vo = userService.login(dto);
-        String token = vo.getStatus();
-        vo.setStatus(null); // 清除token在VO中的临时存储
-        return ApiResponse.success(new java.util.HashMap<String, Object>() {{
-            put("token", token);
-            put("user", vo);
-        }});
+        try {
+            UserVO vo = userService.login(dto);
+            String token = vo.getStatus();
+            vo.setStatus(null); // 清除token在VO中的临时存储
+            return ApiResponse.success(new java.util.HashMap<String, Object>() {{
+                put("token", token);
+                put("user", vo);
+            }});
+        } catch (IllegalArgumentException e) {
+            return new ApiResponse<>(1, e.getMessage(), null);
+        }
     }
 
     /**

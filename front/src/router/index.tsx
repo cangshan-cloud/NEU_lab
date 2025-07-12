@@ -36,10 +36,20 @@ import TradeErrorList from '../pages/trade/TradeErrorList';
 import DeliveryOrderList from '../pages/trade/DeliveryOrderList';
 import AllStrategyBacktestList from '../pages/strategy/AllStrategyBacktestList';
 import SingleStrategyBacktestList from '../pages/strategy/SingleStrategyBacktestList';
+import AdminAnalytics from '../pages/analytics/AdminAnalytics';
 
 const RequireAuth: React.FC = () => {
   const token = localStorage.getItem('token');
   return token ? <Outlet /> : <Navigate to="/login" replace />;
+};
+
+const AdminRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const user = localStorage.getItem('user') ? JSON.parse(localStorage.getItem('user')!) : null;
+  const isAdmin = user && (user.roleName === '管理员' || Number(user.roleId || user.role_id) === 1);
+  if (!isAdmin) {
+    return <div style={{ padding: 48, textAlign: 'center' }}><h2>无权限访问</h2></div>;
+  }
+  return <>{children}</>;
 };
 
 const Router = () => (
@@ -81,6 +91,11 @@ const Router = () => (
         <Route path="product/add" element={<ProductAdd />} />
         <Route path="factor/tree/create" element={<FactorTreeCreate />} />
         <Route path="factor/tree/:id" element={<FactorTreeDetail />} />
+        <Route path="/admin/analytics" element={
+          <AdminRoute>
+            <AdminAnalytics />
+          </AdminRoute>
+        } />
       </Route>
     </Route>
     <Route path="*" element={<Navigate to="/login" replace />} />

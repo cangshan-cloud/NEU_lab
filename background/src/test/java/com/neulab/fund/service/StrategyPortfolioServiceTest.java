@@ -71,4 +71,10 @@ class StrategyPortfolioServiceTest {
         assertEquals(testPortfolio, result);
         verify(strategyPortfolioRepository).save(testPortfolio);
     }
+
+    // 若有空置方法，补充如下：
+    // @Test
+    // public void testSomeBusinessMethod() {
+    //     strategyPortfolioService.someBusinessMethod(null);
+    // }
 } 

@@ -3,8 +3,14 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { fetchStrategyDetail } from '../../api/strategy';
 import type { StrategyVO } from '../../api/strategy';
 import { Card, Descriptions, Button, message, Spin, Tag, Space } from 'antd';
+import { useTrackEvent } from '../../utils/request';
 
 const StrategyDetail: React.FC = () => {
+  const track = useTrackEvent();
+  useEffect(() => {
+    track('view', '/strategies/detail');
+  }, [track]);
+  // 编辑、导出、回测、查看历史等操作可用track('click', '/strategies/detail', { buttonId: 'edit' })等
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const [data, setData] = useState<StrategyVO | null>(null);

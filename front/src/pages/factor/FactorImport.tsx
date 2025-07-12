@@ -2,8 +2,14 @@ import React, { useEffect, useState } from 'react';
 import { Table, Button, Upload, message } from 'antd';
 import { getFactorList, batchImportFactors } from '../../api/factor';
 import type { Factor } from '../../types';
+import { useTrackEvent } from '../../utils/request';
 
 const FactorImport: React.FC = () => {
+  const track = useTrackEvent();
+  useEffect(() => {
+    track('view', '/factors/import');
+  }, [track]);
+  // 导入、模板下载、批量操作等操作可用track('click', '/factors/import', { buttonId: 'import' })等
   const [data, setData] = useState<Factor[]>([]);
   const [loading, setLoading] = useState(false);
 

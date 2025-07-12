@@ -13,7 +13,7 @@ import java.util.Date;
 @Component
 public class JwtUtil {
     private static final String SECRET = "neulab-fund-advisory-very-secret-key-2024";
-    private static final long EXPIRATION = 1000 * 60 * 60 * 24; // 1天
+    private static final long EXPIRATION = 1000L * 60 * 60 * 24 * 7; // 7天
 
     private final Key key = Keys.hmacShaKeyFor(SECRET.getBytes());
 

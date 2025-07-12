@@ -27,7 +27,9 @@ spring:
   jackson:
     date-format: yyyy-MM-dd HH:mm:ss
     time-zone: GMT+8
-    default-property-inclusion: non_null
+    default-property-inclusion: non-null
+  kafka:
+    bootstrap-servers: localhost:9092
 
 # Redis配置（如需启用，取消注释）
 # redis:
@@ -49,4 +51,11 @@ logging:
     org.hibernate.SQL: DEBUG
     org.hibernate.type.descriptor.sql.BasicBinder: TRACE
   pattern:
-    console: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n" 
+    console: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n"
+
+# SparkAI配置
+spark:
+  appid: your-app-id
+  apikey: your-api-key
+  apisecret: your-api-secret
+  use-mock: true  # 默认使用模拟数据，设为false启用真实AI分析 

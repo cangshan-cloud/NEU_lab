@@ -2,10 +2,16 @@ import React, { useEffect, useState } from 'react';
 import { Card, Table, message, Tag, Button, Modal, Form, Input, InputNumber, Select, Popconfirm } from 'antd';
 import { fundPortfolioApi } from '../../api';
 import type { FundPortfolio, FundPortfolioVO } from '../../types';
+import { useTrackEvent } from '../../utils/request';
 
 const { Option } = Select;
 
 const FundPortfolioList: React.FC = () => {
+  const track = useTrackEvent();
+  useEffect(() => {
+    track('view', '/fund-portfolios');
+  }, [track]);
+  // 新增、编辑、筛选、查看详情等操作可用track('click', '/fund-portfolios', { buttonId: 'add' })等
   const [data, setData] = useState<FundPortfolio[]>([]);
   const [loading, setLoading] = useState(false);
   const [modalVisible, setModalVisible] = useState(false);

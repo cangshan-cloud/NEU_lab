@@ -31,6 +31,8 @@ public class ProductReviewServiceImpl implements ProductReviewService {
 
     @Override
     public ProductReview createReview(ProductReview review) {
+        // 不设置 createdAt，数据库自动填充
+        review.setCreatedAt(null);
         return productReviewRepository.save(review);
     }
 
@@ -62,7 +64,6 @@ public class ProductReviewServiceImpl implements ProductReviewService {
     @Override
     public ProductReview submitForReview(ProductReview review) {
         review.setReviewStatus("PENDING");
-        review.setCreatedAt(LocalDateTime.now());
         review.setUpdatedAt(LocalDateTime.now());
         return productReviewRepository.save(review);
     }

@@ -67,4 +67,10 @@ class StrategyBacktestServiceTest {
         assertEquals(testBacktest, result);
         verify(strategyBacktestRepository).save(testBacktest);
     }
+
+    // 若有空置方法，补充如下：
+    // @Test
+    // public void testSomeBusinessMethod() {
+    //     strategyBacktestService.someBusinessMethod(null);
+    // }
 } 

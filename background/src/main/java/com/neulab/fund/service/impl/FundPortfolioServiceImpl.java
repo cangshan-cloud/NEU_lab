@@ -6,6 +6,7 @@ import com.neulab.fund.service.FundPortfolioService;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.UUID;
 
 /**
  * 基金组合业务实现
@@ -30,7 +31,21 @@ public class FundPortfolioServiceImpl implements FundPortfolioService {
 
     @Override
     public FundPortfolio createPortfolio(FundPortfolio portfolio) {
+        // 若portfolio_code为空则自动生成
+        if (portfolio.getPortfolioCode() == null || portfolio.getPortfolioCode().trim().isEmpty()) {
+            portfolio.setPortfolioCode(generatePortfolioCode());
+        }
         return fundPortfolioRepository.save(portfolio);
+    }
+
+    /**
+     * 生成唯一组合代码（不超过20位）
+     */
+    private String generatePortfolioCode() {
+        // FP + 时间戳后6位 + 4位大写字母，总长12位
+        String timePart = String.valueOf(System.currentTimeMillis()).substring(7); // 6位
+        String uuidPart = UUID.randomUUID().toString().replaceAll("-", "").substring(0, 4).toUpperCase();
+        return "FP" + timePart + uuidPart;
     }
 
     @Override

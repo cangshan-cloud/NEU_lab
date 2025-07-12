@@ -2,6 +2,8 @@ import React, { useEffect, useState } from 'react';
 import { Card, Table, message, Tag, Button, Modal, Form, Input, InputNumber, Select, Popconfirm, Row, Col, Space, Divider } from 'antd';
 import { productApi } from '../../api/product';
 import type { Product, ProductVO } from '../../types';
+import { useTrackEvent } from '../../utils/request';
+import { SearchOutlined, PlusOutlined, EditOutlined, DeleteOutlined, ReloadOutlined } from '@ant-design/icons';
 
 const { Option } = Select;
 const { TextArea } = Input;
@@ -18,6 +20,7 @@ const ProductList: React.FC = () => {
   const user = localUser ? JSON.parse(localUser) : null;
   const isAdmin = !!user && Number(user.roleId || user.role_id) === 1;
   const isUser = !!user && Number(user.roleId || user.role_id) === 2;
+  const track = useTrackEvent();
 
   const statusColorMap: Record<string, string> = {
     ACTIVE: 'green',
@@ -32,6 +35,8 @@ const ProductList: React.FC = () => {
     { label: '指数型', value: 'INDEX' },
     { label: 'FOF型', value: 'FOF' },
     { label: 'QDII型', value: 'QDII' },
+    { label: '策略型', value: 'STRATEGY' },
+    { label: '择时型', value: 'TIMING' },
   ];
 
   const riskLevelOptions = [
@@ -48,9 +53,26 @@ const ProductList: React.FC = () => {
     { label: '长期(3年以上)', value: 'LONG' },
   ];
 
+  const [searchKeyword, setSearchKeyword] = useState('');
+  const [selectedType, setSelectedType] = useState('');
+  const [selectedRiskLevel, setSelectedRiskLevel] = useState('');
+  const [selectedStatus, setSelectedStatus] = useState('');
+
   useEffect(() => {
-    fetchData();
-  }, []);
+    track('view', '/products');
+    fetchData(); // 自动加载数据
+  }, [track]);
+
+  // 新增 useEffect 监听筛选项变化自动刷新
+  useEffect(() => {
+    fetchData({
+      keyword: searchKeyword,
+      productType: selectedType,
+      riskLevel: selectedRiskLevel,
+      status: selectedStatus,
+    });
+    // eslint-disable-next-line
+  }, [searchKeyword, selectedType, selectedRiskLevel, selectedStatus]);
 
   const fetchData = async (filters?: any) => {
     try {
@@ -80,8 +102,8 @@ const ProductList: React.FC = () => {
           description: vo.description,
           prospectus: vo.prospectus,
           status: vo.status,
-          createdAt: vo.createdAt,
-          updatedAt: vo.updatedAt,
+          createdAt: vo.createdAt || (vo as any).created_at,
+          updatedAt: vo.updatedAt || (vo as any).updated_at,
         }));
       } else if (
         response.data.data &&
@@ -206,18 +228,21 @@ const ProductList: React.FC = () => {
   };
 
   const handleAdd = () => {
+    track('click', '/products', { buttonId: 'add' });
     setEditingProduct(null);
     form.resetFields();
     setModalVisible(true);
   };
 
   const handleEdit = (record: Product) => {
+    track('click', '/products', { buttonId: 'edit', productId: record.id });
     setEditingProduct(record);
     form.setFieldsValue(record);
     setModalVisible(true);
   };
 
   const handleDelete = async (id: number) => {
+    track('click', '/products', { buttonId: 'delete', productId: id });
     try {
       await productApi.delete(id);
       message.success('删除成功');
@@ -246,6 +271,7 @@ const ProductList: React.FC = () => {
 
   // 筛选处理
   const handleFilter = async () => {
+    track('click', '/products', { buttonId: 'filter' });
     try {
       const values = await filterForm.validateFields();
       await fetchData(values);
@@ -257,12 +283,14 @@ const ProductList: React.FC = () => {
 
   // 重置筛选
   const handleResetFilter = () => {
+    track('click', '/products', { buttonId: 'resetFilter' });
     filterForm.resetFields();
     fetchData();
     message.success('筛选条件已重置');
   };
 
   const handleSubmitReview = async (productId: number) => {
+    track('click', '/products', { buttonId: 'submitReview', productId });
     try {
       await productApi.submitReview(productId);
       message.success('提交审核申请成功');
@@ -281,7 +309,7 @@ const ProductList: React.FC = () => {
       key: 'productType',
       render: (type: string) => {
         const option = productTypeOptions.find(opt => opt.value === type);
-        return option ? option.label : type;
+        return <Tag color={option ? 'blue' : 'default'}>{option ? option.label : type}</Tag>;
       }
     },
     { 
@@ -290,20 +318,20 @@ const ProductList: React.FC = () => {
       key: 'riskLevel',
       render: (level: string) => {
         const option = riskLevelOptions.find(opt => opt.value === level);
-        return option ? option.label : level;
+        return option ? <Tag color="orange">{option.label}</Tag> : level;
       }
     },
     { 
       title: '目标收益率', 
       dataIndex: 'targetReturn', 
       key: 'targetReturn',
-      render: (value: number) => value ? `${value}%` : '-'
+      render: (value: number) => value != null ? `${value}%` : '-'
     },
     { 
       title: '最大回撤', 
       dataIndex: 'maxDrawdown', 
       key: 'maxDrawdown',
-      render: (value: number) => value ? `${value}%` : '-'
+      render: (value: number) => value != null ? `${value}%` : '-'
     },
     { 
       title: '投资期限', 
@@ -318,38 +346,48 @@ const ProductList: React.FC = () => {
       title: '最小投资金额', 
       dataIndex: 'minInvestment', 
       key: 'minInvestment',
-      render: (value: number) => value ? `¥${value.toLocaleString()}` : '-'
+      render: (value: number) => value != null ? `¥${value.toLocaleString()}` : '-'
     },
     { 
       title: '最大投资金额', 
       dataIndex: 'maxInvestment', 
       key: 'maxInvestment',
-      render: (value: number) => value ? `¥${value.toLocaleString()}` : '-'
+      render: (value: number) => value != null ? `¥${value.toLocaleString()}` : '-'
     },
     { 
       title: '管理费率', 
       dataIndex: 'managementFee', 
       key: 'managementFee',
-      render: (value: number) => value ? `${value}%` : '-'
+      render: (value: number) => value != null ? `${value}%` : '-'
     },
     { 
       title: '业绩费率', 
       dataIndex: 'performanceFee', 
       key: 'performanceFee',
-      render: (value: number) => value ? `${value}%` : '-'
+      render: (value: number) => value != null ? `${value}%` : '-'
     },
     {
       title: '状态',
       dataIndex: 'status',
       key: 'status',
       render: (status: string) => (
-        <Tag color={statusColorMap[status] || 'default'}>
-          {status === 'ACTIVE' ? '正常' : status === 'INACTIVE' ? '停用' : status}
+        <Tag color={status === 'ACTIVE' ? 'green' : 'red'}>
+          {status === 'ACTIVE' ? '正常' : '停用'}
         </Tag>
       ),
     },
-    { title: '创建时间', dataIndex: 'createdAt', key: 'createdAt' },
-    { title: '更新时间', dataIndex: 'updatedAt', key: 'updatedAt' },
+    { 
+      title: '创建时间', 
+      dataIndex: 'createdAt', 
+      key: 'createdAt',
+      render: (text: string) => text ? new Date(text).toLocaleString() : '-',
+    },
+    { 
+      title: '更新时间', 
+      dataIndex: 'updatedAt', 
+      key: 'updatedAt',
+      render: (text: string) => text ? new Date(text).toLocaleString() : '-',
+    },
     {
       title: '操作',
       key: 'action',
@@ -368,141 +406,64 @@ const ProductList: React.FC = () => {
   ];
 
   return (
-    <Card title="产品管理" extra={<Button type="primary" onClick={handleAdd}>新增产品</Button>}>
-      {/* 高级筛选区域 */}
-      <Card size="small" style={{ marginBottom: 16 }}>
-        <Form form={filterForm} layout="horizontal">
-          <Row gutter={16}>
-            <Col span={6}>
-              <Form.Item label="关键词搜索" name="keyword">
-                <Input placeholder="产品代码/名称/描述" allowClear />
-              </Form.Item>
-            </Col>
-            <Col span={6}>
-              <Form.Item label="产品类型" name="productType">
-                <Select placeholder="请选择产品类型" allowClear>
-                  {productTypeOptions.map(option => (
-                    <Option key={option.value} value={option.value}>{option.label}</Option>
-                  ))}
-                </Select>
-              </Form.Item>
-            </Col>
-            <Col span={6}>
-              <Form.Item label="风险等级" name="riskLevel">
-                <Select placeholder="请选择风险等级" allowClear>
-                  {riskLevelOptions.map(option => (
-                    <Option key={option.value} value={option.value}>{option.label}</Option>
-                  ))}
-                </Select>
-              </Form.Item>
-            </Col>
-            <Col span={6}>
-              <Form.Item label="投资期限" name="investmentHorizon">
-                <Select placeholder="请选择投资期限" allowClear>
-                  {investmentHorizonOptions.map(option => (
-                    <Option key={option.value} value={option.value}>{option.label}</Option>
-                  ))}
-                </Select>
-              </Form.Item>
-            </Col>
-          </Row>
-          
-          {showAdvancedFilter && (
-            <>
-              <Divider />
-              <Row gutter={16}>
-                <Col span={6}>
-                  <Form.Item label="目标收益率范围(%)" name="targetReturnRange">
-                    <Input.Group compact>
-                      <Form.Item name={['targetReturnRange', 0]} noStyle>
-                        <InputNumber placeholder="最小值" style={{ width: '50%' }} />
-                      </Form.Item>
-                      <Form.Item name={['targetReturnRange', 1]} noStyle>
-                        <InputNumber placeholder="最大值" style={{ width: '50%' }} />
-                      </Form.Item>
-                    </Input.Group>
-                  </Form.Item>
-                </Col>
-                <Col span={6}>
-                  <Form.Item label="最大回撤范围(%)" name="maxDrawdownRange">
-                    <Input.Group compact>
-                      <Form.Item name={['maxDrawdownRange', 0]} noStyle>
-                        <InputNumber placeholder="最小值" style={{ width: '50%' }} />
-                      </Form.Item>
-                      <Form.Item name={['maxDrawdownRange', 1]} noStyle>
-                        <InputNumber placeholder="最大值" style={{ width: '50%' }} />
-                      </Form.Item>
-                    </Input.Group>
-                  </Form.Item>
-                </Col>
-                <Col span={6}>
-                  <Form.Item label="最小投资金额范围" name="minInvestmentRange">
-                    <Input.Group compact>
-                      <Form.Item name={['minInvestmentRange', 0]} noStyle>
-                        <InputNumber placeholder="最小值" style={{ width: '50%' }} />
-                      </Form.Item>
-                      <Form.Item name={['minInvestmentRange', 1]} noStyle>
-                        <InputNumber placeholder="最大值" style={{ width: '50%' }} />
-                      </Form.Item>
-                    </Input.Group>
-                  </Form.Item>
-                </Col>
-                <Col span={6}>
-                  <Form.Item label="管理费率范围(%)" name="managementFeeRange">
-                    <Input.Group compact>
-                      <Form.Item name={['managementFeeRange', 0]} noStyle>
-                        <InputNumber placeholder="最小值" style={{ width: '50%' }} />
-                      </Form.Item>
-                      <Form.Item name={['managementFeeRange', 1]} noStyle>
-                        <InputNumber placeholder="最大值" style={{ width: '50%' }} />
-                      </Form.Item>
-                    </Input.Group>
-                  </Form.Item>
-                </Col>
-              </Row>
-              <Row gutter={16}>
-                <Col span={6}>
-                  <Form.Item label="状态" name="status">
-                    <Select placeholder="请选择状态" allowClear>
-                      <Option value="ACTIVE">正常</Option>
-                      <Option value="INACTIVE">停用</Option>
-                    </Select>
-                  </Form.Item>
-                </Col>
-              </Row>
-            </>
-          )}
-          
-          <Row>
-            <Col span={24}>
-              <Space>
-                <Button type="primary" onClick={handleFilter}>筛选</Button>
-                <Button onClick={handleResetFilter}>重置</Button>
-                <Button 
-                  type="link" 
-                  onClick={() => setShowAdvancedFilter(!showAdvancedFilter)}
-                >
-                  {showAdvancedFilter ? '收起高级筛选' : '展开高级筛选'}
-                </Button>
-              </Space>
-            </Col>
-          </Row>
-        </Form>
-      </Card>
-
+    <Card title="产品管理" extra={<Button type="primary" icon={<PlusOutlined />} onClick={handleAdd}>新增产品</Button>}>
+      {/* 筛选区 */}
+      <div style={{ marginBottom: 16 }}>
+        <Space wrap>
+          <Input.Search
+            placeholder="搜索产品代码/名称/描述"
+            allowClear
+            enterButton={<SearchOutlined />}
+            style={{ width: 240 }}
+            value={searchKeyword}
+            onChange={e => setSearchKeyword(e.target.value)}
+          />
+          <Select
+            placeholder="产品类型"
+            allowClear
+            style={{ width: 120 }}
+            value={selectedType || undefined}
+            onChange={v => setSelectedType(v)}
+          >
+            {productTypeOptions.map(opt => <Option key={opt.value} value={opt.value}>{opt.label}</Option>)}
+          </Select>
+          <Select
+            placeholder="风险等级"
+            allowClear
+            style={{ width: 120 }}
+            value={selectedRiskLevel || undefined}
+            onChange={v => setSelectedRiskLevel(v)}
+          >
+            {riskLevelOptions.map(opt => <Option key={opt.value} value={opt.value}>{opt.label}</Option>)}
+          </Select>
+          <Select
+            placeholder="状态"
+            allowClear
+            style={{ width: 120 }}
+            value={selectedStatus || undefined}
+            onChange={v => setSelectedStatus(v)}
+          >
+            <Option value="ACTIVE">正常</Option>
+            <Option value="INACTIVE">停用</Option>
+          </Select>
+          <Button icon={<ReloadOutlined />} onClick={handleResetFilter}>重置</Button>
+        </Space>
+      </div>
+      {/* 表格 */}
       <Table
         bordered
         columns={columns}
         dataSource={data}
         rowKey="id"
         loading={loading}
+        scroll={{ x: 'max-content' }}
+        rowClassName={(_, idx) => (idx % 2 === 0 ? 'table-row-light' : 'table-row-dark')}
+        size="middle"
         pagination={{
           showSizeChanger: true,
           showQuickJumper: true,
           showTotal: (total) => `共 ${total} 条记录`,
         }}
-        scroll={{ x: 'max-content' }}
-        rowClassName={(_, idx) => (idx % 2 === 0 ? 'table-row-light' : 'table-row-dark')}
       />
       
       <Modal

@@ -213,4 +213,18 @@ public class TradeOrderController {
             return ApiResponse.error("统计成功订单数量失败: " + e.getMessage());
         }
     }
+    
+    /**
+     * 通用更新交易订单
+     */
+    @PutMapping("/{id}")
+    @Operation(summary = "更新交易订单", description = "根据ID更新交易订单")
+    public ApiResponse<TradeOrder> updateOrder(@PathVariable Long id, @RequestBody TradeOrder order) {
+        try {
+            TradeOrder updated = tradeOrderService.updateOrder(id, order);
+            return ApiResponse.success(updated);
+        } catch (Exception e) {
+            return ApiResponse.error("更新订单失败: " + e.getMessage());
+        }
+    }
 } 

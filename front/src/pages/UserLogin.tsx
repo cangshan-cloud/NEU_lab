@@ -1,11 +1,17 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { login } from '../api/user';
 import { useNavigate } from 'react-router-dom';
 import { Form, Input, Button, Typography, message, Card } from 'antd';
+import { useTrackEvent } from '../utils/request';
 
 const { Title } = Typography;
 
 const UserLogin: React.FC = () => {
+  const track = useTrackEvent();
+  useEffect(() => {
+    track('view', '/user-login');
+  }, [track]);
+  // 登录、提交等操作可用track('click', '/user-login', { buttonId: 'login' })等
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 

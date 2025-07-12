@@ -3,6 +3,7 @@ import type { AxiosRequestConfig, AxiosResponse } from 'axios';
 import { message } from 'antd';
 import type { ApiResponse } from '../types';
 import qs from 'qs';
+import { useCallback } from 'react';
 
 // 创建axios实例
 const request = axios.create({
@@ -94,5 +95,44 @@ export const put = <T = any>(url: string, data?: any, config?: AxiosRequestConfi
 export const del = <T = any>(url: string, config?: AxiosRequestConfig) => {
   return request.delete<ApiResponse<T>>(url, config);
 };
+
+/**
+ * 埋点事件上报
+ * @param event 事件类型（如view、click、search、form_submit等）
+ * @param page 当前页面路径
+ * @param properties 其他属性（如按钮ID、表单类型、搜索词等）
+ */
+export function trackEvent(event: string, page: string, properties: Record<string, any> = {}) {
+  const user = localStorage.getItem('user');
+  let userId = undefined;
+  try {
+    userId = user ? JSON.parse(user).id : undefined;
+  } catch {}
+  const payload = {
+    userId,
+    eventType: event, // 修正字段名，确保与后端一致
+    page,
+    timestamp: Date.now(),
+    properties,
+    platform: 'web',
+  };
+  // 忽略本地开发时的无效上报
+  if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
+    // 可选：开发环境不实际上报
+    // return;
+  }
+  return request.post('/track-events', payload).catch(() => {});
+}
+
+/**
+ * React Hook: useTrackEvent
+ * 用于在组件中便捷调用trackEvent进行埋点
+ * @returns (event, page, properties) => void
+ */
+export function useTrackEvent() {
+  return useCallback((event: string, page: string, properties: Record<string, any> = {}) => {
+    trackEvent(event, page, properties);
+  }, []);
+}
 
 export default request; 

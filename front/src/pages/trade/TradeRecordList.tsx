@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { Table, Card, Button, Space, Tag, Modal, message, Input, Form, Select } from 'antd';
 import { PlusOutlined, EditOutlined, DeleteOutlined, EyeOutlined } from '@ant-design/icons';
-import { getTradeRecordList, deleteTradeRecord } from '../../api/trade';
+import { getTradeRecordList, deleteTradeRecord, tradeRecordApi } from '../../api/trade';
 import type { TradeRecord } from '../../types';
+import { useTrackEvent } from '../../utils/request';
 
 const { Search } = Input;
 
@@ -65,6 +66,11 @@ const TradeRecordList: React.FC = () => {
   const [modalOpen, setModalOpen] = useState(false);
   const [modalMode, setModalMode] = useState<'view' | 'edit'>('view');
   const [modalData, setModalData] = useState<any>(undefined);
+  const track = useTrackEvent();
+
+  useEffect(() => {
+    track('view', '/trade-records');
+  }, [track]);
 
   const fetchData = async () => {
     setLoading(true);
@@ -85,6 +91,7 @@ const TradeRecordList: React.FC = () => {
   }, []);
 
   const handleDelete = (id: number) => {
+    track('click', '/trade-records', { buttonId: 'delete', recordId: id });
     Modal.confirm({
       title: '确认删除',
       content: '确定要删除这个交易记录吗？',
@@ -103,11 +110,13 @@ const TradeRecordList: React.FC = () => {
   };
 
   const handleView = (record: any) => {
+    track('click', '/trade-records', { buttonId: 'view', recordId: record.id });
     setModalData(record);
     setModalMode('view');
     setModalOpen(true);
   };
   const handleEdit = (record: any) => {
+    track('click', '/trade-records', { buttonId: 'edit', recordId: record.id });
     setModalData(record);
     setModalMode('edit');
     setModalOpen(true);
@@ -254,7 +263,7 @@ const TradeRecordList: React.FC = () => {
           <Button
             type="primary"
             icon={<PlusOutlined />}
-            onClick={() => { setModalData(undefined); setModalMode('edit'); setModalOpen(true); }}
+            onClick={() => { setModalData(undefined); setModalMode('edit'); setModalOpen(true); track('click', '/trade-records', { buttonId: 'add' }); }}
           >
             新增记录
           </Button>
@@ -283,10 +292,15 @@ const TradeRecordList: React.FC = () => {
         open={modalOpen}
         mode={modalMode}
         data={modalData}
-        onOk={(values) => {
-          // TODO: 实现保存逻辑
-          setModalOpen(false);
-          fetchData();
+        onOk={async (values) => {
+          try {
+            await tradeRecordApi.update(modalData.id, values);
+            message.success('保存成功');
+            setModalOpen(false);
+            fetchData();
+          } catch (e) {
+            message.error('保存失败');
+          }
         }}
         onCancel={() => setModalOpen(false)}
       />

@@ -12,4 +12,13 @@ class FundTagControllerTest {
     void contextLoads() {
         assertTrue(true);
     }
+
+    // 空置测试方法补充示例：
+    // @Autowired
+    // private MockMvc mockMvc;
+    // @Test
+    // public void testListTags() throws Exception {
+    //     mockMvc.perform(get("/api/fund-tags"))
+    //             .andExpect(status().isOk());
+    // }
 } 

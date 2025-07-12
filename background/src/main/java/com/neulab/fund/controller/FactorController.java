@@ -30,7 +30,11 @@ public class FactorController {
      */
     @GetMapping("/{id}")
     public ApiResponse<Factor> getFactor(@PathVariable Long id) {
-        return ApiResponse.success(factorService.getFactorById(id));
+        Factor factor = factorService.getFactorById(id);
+        if (factor == null) {
+            return ApiResponse.error("因子不存在", 1);
+        }
+        return ApiResponse.success(factor);
     }
 
     /**
@@ -43,13 +47,23 @@ public class FactorController {
 
     @DeleteMapping("/{id}")
     public ApiResponse<Void> deleteFactor(@PathVariable Long id) {
+        Factor factor = factorService.getFactorById(id);
+        if (factor == null) {
+            return ApiResponse.error("因子不存在", 1);
+        }
         factorService.deleteFactor(id);
-        return ApiResponse.success();
+        return new ApiResponse<>(0, "删除成功", null);
     }
 
-    @PutMapping
-    public ApiResponse<Factor> updateFactor(@RequestBody Factor factor) {
-        return ApiResponse.success(factorService.updateFactor(factor));
+    @PutMapping("/{id}")
+    public ApiResponse<Factor> updateFactor(@PathVariable Long id, @RequestBody Factor factor) {
+        Factor existing = factorService.getFactorById(id);
+        if (existing == null) {
+            return ApiResponse.error("因子不存在", 1);
+        }
+        factor.setId(id);
+        Factor updated = factorService.updateFactor(factor);
+        return ApiResponse.success(updated);
     }
 
     /**

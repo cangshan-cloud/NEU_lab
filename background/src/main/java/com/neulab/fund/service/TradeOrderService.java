@@ -56,6 +56,10 @@ public interface TradeOrderService {
      * 更新订单状态
      */
     TradeOrder updateOrderStatus(Long orderId, String status);
+    /**
+     * 通用更新交易订单
+     */
+    TradeOrder updateOrder(Long id, TradeOrder order);
     
     /**
      * 取消订单

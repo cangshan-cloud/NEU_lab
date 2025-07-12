@@ -209,6 +209,24 @@ public class TradeOrderServiceImpl implements TradeOrderService {
         return result;
     }
     
+    @Override
+    public TradeOrder updateOrder(Long id, TradeOrder order) {
+        Optional<TradeOrder> optional = tradeOrderRepository.findById(id);
+        if (optional.isPresent()) {
+            TradeOrder existing = optional.get();
+            // 仅更新允许变更的字段
+            if (order.getStatus() != null) existing.setStatus(order.getStatus());
+            if (order.getAmount() != null) existing.setAmount(order.getAmount());
+            if (order.getShares() != null) existing.setShares(order.getShares());
+            if (order.getRemark() != null) existing.setRemark(order.getRemark());
+            if (order.getTradeType() != null) existing.setTradeType(order.getTradeType());
+            // 其他字段可按需补充
+            existing.setUpdatedAt(java.time.LocalDateTime.now());
+            return tradeOrderRepository.save(existing);
+        }
+        throw new RuntimeException("订单不存在");
+    }
+    
     /**
      * 生成订单编号
      */

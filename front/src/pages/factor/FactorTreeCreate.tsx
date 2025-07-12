@@ -3,8 +3,14 @@ import { Card, Input, Button, Table, message } from 'antd';
 import { getFactorList, createFactorTreeWithNodes } from '../../api/factor';
 import { useNavigate } from 'react-router-dom';
 import type { Factor } from '../../types';
+import { useTrackEvent } from '../../utils/request';
 
 const FactorTreeCreate: React.FC = () => {
+  const track = useTrackEvent();
+  useEffect(() => {
+    track('view', '/factor-trees/create');
+  }, [track]);
+  // 新增、保存、编辑节点等操作可用track('click', '/factor-trees/create', { buttonId: 'save' })等
   const [factors, setFactors] = useState<Factor[]>([]);
   const [selectedRowKeys, setSelectedRowKeys] = useState<React.Key[]>([]);
   const [treeName, setTreeName] = useState('');

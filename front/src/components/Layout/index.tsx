@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import type { PropsWithChildren } from 'react';
 import { Outlet, Link, useLocation, useNavigate } from 'react-router-dom';
 import {
@@ -23,8 +23,10 @@ import {
   UserOutlined,
   LogoutOutlined,
   BellOutlined,
+  BarChartOutlined,
 } from '@ant-design/icons';
 import './index.css';
+import { trackEvent } from '../../utils/request';
 
 const { Header, Sider, Content } = AntLayout;
 const { Title } = Typography;
@@ -39,7 +41,13 @@ const Layout: React.FC<PropsWithChildren> = ({ children }) => {
 
   const user = localStorage.getItem('user') ? JSON.parse(localStorage.getItem('user')!) : null;
 
-  // 菜单配置
+  useEffect(() => {
+    // 页面浏览自动埋点
+    trackEvent('view', location.pathname);
+  }, [location.pathname]);
+
+  // 动态菜单项
+  const isAdmin = user && (user.roleName === '管理员' || Number(user.roleId || user.role_id) === 1);
   const menuItems = [
     {
       key: '/',
@@ -145,6 +153,11 @@ const Layout: React.FC<PropsWithChildren> = ({ children }) => {
         },
       ],
     },
+    ...(isAdmin ? [{
+      key: '/admin/analytics',
+      icon: <BarChartOutlined />,
+      label: '数据分析',
+    }] : []),
   ];
 
   // 用户菜单

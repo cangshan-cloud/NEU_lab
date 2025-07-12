@@ -2,8 +2,13 @@ import React, { useEffect, useState } from 'react';
 import { Table, Button, Input, InputNumber, message, Steps } from 'antd';
 import { batchImportFactors, getFactorList } from '../../api/factor';
 import type { Factor } from '../../types';
+import { useTrackEvent } from '../../utils/request';
 
 const StyleFactorCreate: React.FC = () => {
+  const track = useTrackEvent();
+  useEffect(() => {
+    track('view', '/style-factors/create');
+  }, [track]);
   const [factors, setFactors] = useState<Factor[]>([]);
   const [selectedKeys, setSelectedKeys] = useState<React.Key[]>([]);
   const [selected, setSelected] = useState<Factor[]>([]);

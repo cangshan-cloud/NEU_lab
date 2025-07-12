@@ -33,7 +33,11 @@ public class ProductController {
      */
     @GetMapping("/{id}")
     public ApiResponse<Product> getProductById(@PathVariable Long id) {
-        return ApiResponse.success(productService.getProductById(id));
+        Product product = productService.getProductById(id);
+        if (product == null) {
+            return ApiResponse.error("产品不存在", 1);
+        }
+        return ApiResponse.success(product);
     }
 
     /**
@@ -49,6 +53,10 @@ public class ProductController {
      */
     @PutMapping("/{id}")
     public ApiResponse<Product> updateProduct(@PathVariable Long id, @RequestBody Product product) {
+        Product existing = productService.getProductById(id);
+        if (existing == null) {
+            return ApiResponse.error("产品不存在", 1);
+        }
         product.setId(id);
         return ApiResponse.success(productService.updateProduct(product));
     }
@@ -58,8 +66,12 @@ public class ProductController {
      */
     @DeleteMapping("/{id}")
     public ApiResponse<Void> deleteProduct(@PathVariable Long id) {
+        Product product = productService.getProductById(id);
+        if (product == null) {
+            return ApiResponse.error("产品不存在", 1);
+        }
         productService.deleteProduct(id);
-        return ApiResponse.success(null);
+        return new ApiResponse<>(0, "删除成功", null);
     }
 
     /**

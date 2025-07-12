@@ -88,11 +88,11 @@ public class Product {
     private String status;
     
     /** 创建时间 */
-    @Column(name = "created_at")
+    @Column(name = "created_at", insertable = false, updatable = false)
     private LocalDateTime createdAt;
     
     /** 更新时间 */
-    @Column(name = "updated_at")
+    @Column(name = "updated_at", insertable = false)
     private LocalDateTime updatedAt;
 
     // getter/setter

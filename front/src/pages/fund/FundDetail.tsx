@@ -2,9 +2,16 @@ import React from 'react';
 import { Card, Descriptions, Tag } from 'antd';
 import { useParams } from 'react-router-dom';
 import type { Fund, FundTag } from '../../types';
+import { useEffect } from 'react';
+import { useTrackEvent } from '../../utils/request';
 
 const FundDetail: React.FC = () => {
   const { id } = useParams();
+  const track = useTrackEvent();
+  useEffect(() => {
+    track('view', '/funds/detail');
+  }, [track]);
+  // 导出、批量操作等操作可用track('click', '/funds/detail', { buttonId: 'export' })等
   // 假设已通过接口获取fund对象
   const fund: Fund = {
     id: Number(id),

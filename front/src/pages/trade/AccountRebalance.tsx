@@ -3,9 +3,14 @@ import { Button, Form, InputNumber, Select, message, Card } from 'antd';
 import { accountRebalance } from '../../api/trade';
 import { getProducts } from '../../api/fund';
 import { getUserList } from '../../api/user';
+import { useTrackEvent } from '../../utils/request';
 
 const AccountRebalance: React.FC = () => {
-  // ... existing code ...
+  const track = useTrackEvent();
+  useEffect(() => {
+    track('view', '/account-rebalance');
+  }, [track]);
+  // 调仓、导出、批量操作等操作可用track('click', '/account-rebalance', { buttonId: 'rebalance' })等
 
   const [users, setUsers] = useState<{ label: string; value: number }[]>([]);
   const [products, setProducts] = useState<{ label: string; value: number }[]>([]);

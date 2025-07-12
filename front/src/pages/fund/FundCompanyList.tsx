@@ -2,8 +2,14 @@ import React, { useEffect, useState } from 'react';
 import { Card, Table, message, Spin, Tag, Button, Modal, Form, Input, Popconfirm } from 'antd';
 import { fundCompanyApi } from '../../api/fund';
 import type { FundCompany } from '../../types';
+import { useTrackEvent } from '../../utils/request';
 
 const FundCompanyList: React.FC = () => {
+  const track = useTrackEvent();
+  useEffect(() => {
+    track('view', '/fund-companies');
+  }, [track]);
+  // 新增、编辑、筛选、查看详情等操作可用track('click', '/fund-companies', { buttonId: 'add' })等
   const [data, setData] = useState<FundCompany[]>([]);
   const [loading, setLoading] = useState(true);
   const [modalVisible, setModalVisible] = useState(false);

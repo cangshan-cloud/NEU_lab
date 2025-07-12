@@ -4,8 +4,14 @@ import { getFactorTreeWithNodesList, createFactorTreeWithNodes, updateFactorTree
 import { getFactorList } from '../../api/factor';
 import type { Factor } from '../../types';
 import { useNavigate } from 'react-router-dom';
+import { useTrackEvent } from '../../utils/request';
 
 const FactorTreeList: React.FC = () => {
+  const track = useTrackEvent();
+  useEffect(() => {
+    track('view', '/factor-trees');
+  }, [track]);
+  // 新增、编辑、筛选、查看详情等操作可用track('click', '/factor-trees', { buttonId: 'add' })等
   const [trees, setTrees] = useState<any[]>([]);
   const [factors, setFactors] = useState<Factor[]>([]);
   const [modalOpen, setModalOpen] = useState(false);

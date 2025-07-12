@@ -1,8 +1,15 @@
 import React, { useState, useEffect } from 'react';
 import { Card, Table, Tag, Button, Modal, Input, message } from 'antd';
 import { batchImportFactors, getFactorList } from '../../api/factor';
+import { useTrackEvent } from '../../utils/request';
 
 const FactorList: React.FC = () => {
+  const track = useTrackEvent();
+  useEffect(() => {
+    track('view', '/factors');
+  }, [track]);
+  // 新增、编辑、筛选、导入、查看详情等操作可用track('click', '/factors', { buttonId: 'add' })等
+  // 导出、批量操作等操作可用track('click', '/factors', { buttonId: 'export' })等
   const [importVisible, setImportVisible] = useState(false);
   const [importJson, setImportJson] = useState('');
   const [importLoading, setImportLoading] = useState(false);

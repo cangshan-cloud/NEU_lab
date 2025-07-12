@@ -2,8 +2,13 @@ import React, { useState, useEffect } from 'react';
 import { Button, Form, InputNumber, Select, message, Card } from 'antd';
 import { rebalancePortfolio } from '../../api/trade';
 import { getPortfolios, getProducts } from '../../api/fund';
+import { useTrackEvent } from '../../utils/request';
 
 const PortfolioRebalance: React.FC = () => {
+  const track = useTrackEvent();
+  useEffect(() => {
+    track('view', '/portfolio-rebalance');
+  }, [track]);
   const [form] = Form.useForm();
   const [loading, setLoading] = useState(false);
   const [portfolios, setPortfolios] = useState<{ label: string; value: number }[]>([]);

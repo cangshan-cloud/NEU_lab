@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { Table, Card, Button, Space, Tag, Modal, message, Input, Form, Select } from 'antd';
 import { PlusOutlined, EditOutlined, DeleteOutlined, EyeOutlined } from '@ant-design/icons';
-import { getCapitalFlowList, deleteCapitalFlow } from '../../api/trade';
+import { getCapitalFlowList, deleteCapitalFlow, capitalFlowApi } from '../../api/trade';
 import type { CapitalFlow } from '../../types';
+import { useTrackEvent } from '../../utils/request';
 
 const { Search } = Input;
 
@@ -70,6 +71,11 @@ const CapitalFlowList: React.FC = () => {
   const [modalOpen, setModalOpen] = useState(false);
   const [modalMode, setModalMode] = useState<'view' | 'edit'>('view');
   const [modalData, setModalData] = useState<any>(undefined);
+  const track = useTrackEvent();
+
+  useEffect(() => {
+    track('view', '/capital-flows');
+  }, [track]);
 
   const fetchData = async () => {
     setLoading(true);
@@ -90,6 +96,7 @@ const CapitalFlowList: React.FC = () => {
   }, []);
 
   const handleDelete = (id: number) => {
+    track('click', '/capital-flows', { buttonId: 'delete', flowId: id });
     Modal.confirm({
       title: '确认删除',
       content: '确定要删除这个资金流水吗？',
@@ -108,11 +115,13 @@ const CapitalFlowList: React.FC = () => {
   };
 
   const handleView = (record: any) => {
+    track('click', '/capital-flows', { buttonId: 'view', flowId: record.id });
     setModalData(record);
     setModalMode('view');
     setModalOpen(true);
   };
   const handleEdit = (record: any) => {
+    track('click', '/capital-flows', { buttonId: 'edit', flowId: record.id });
     setModalData(record);
     setModalMode('edit');
     setModalOpen(true);
@@ -291,10 +300,15 @@ const CapitalFlowList: React.FC = () => {
         open={modalOpen}
         mode={modalMode}
         data={modalData}
-        onOk={(values) => {
-          // TODO: 实现保存逻辑
-          setModalOpen(false);
-          fetchData();
+        onOk={async (values) => {
+          try {
+            await capitalFlowApi.update(modalData.id, values);
+            message.success('保存成功');
+            setModalOpen(false);
+            fetchData();
+          } catch (e) {
+            message.error('保存失败');
+          }
         }}
         onCancel={() => setModalOpen(false)}
       />

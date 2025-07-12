@@ -1,7 +1,14 @@
 import React, { useEffect, useState } from 'react';
 import { listUsers, disableUser, deleteUser, updateUserRole, listRoles } from '../api/user';
+import { useTrackEvent } from '../utils/request';
 
 const UserList: React.FC = () => {
+  const track = useTrackEvent();
+  useEffect(() => {
+    track('view', '/users');
+  }, [track]);
+  // 导出、批量操作等操作可用track('click', '/users', { buttonId: 'export' })等
+  // 未来如有搜索、筛选、编辑、禁用等操作，可直接调用track('click', '/users', { buttonId: 'xxx', ... })
   const [users, setUsers] = useState<any[]>([]);
   const [roles, setRoles] = useState<any[]>([]);
   const [params, setParams] = useState({ page: 0, size: 10, role: '', status: '', keyword: '' });
@@ -56,7 +63,7 @@ const UserList: React.FC = () => {
         <input placeholder="关键词" value={params.keyword} onChange={e => setParams({ ...params, keyword: e.target.value })} style={{ padding: 4 }} />
         <select value={params.role} onChange={e => setParams({ ...params, role: e.target.value })} style={{ padding: 4 }}>
           <option value="">全部角色</option>
-          {roles.map((r: any) => <option key={r.id} value={r.roleName}>{r.roleName}</option>)}
+          {roles.map((r: any) => <option key={r.id} value={String(r.id)}>{r.roleName}</option>)}
         </select>
         <select value={params.status} onChange={e => setParams({ ...params, status: e.target.value })} style={{ padding: 4 }}>
           <option value="">全部状态</option>
@@ -85,8 +92,8 @@ const UserList: React.FC = () => {
               <td style={{ border: '1px solid #eee', padding: 8 }}>{u.id}</td>
               <td style={{ border: '1px solid #eee', padding: 8 }}>{u.username}</td>
               <td style={{ border: '1px solid #eee', padding: 8 }}>
-                <select value={u.role_id} onChange={e => handleRoleChange(u.id, Number(e.target.value))} style={{ padding: 4 }}>
-                  {roles.map((r: any) => <option key={r.id} value={r.id}>{r.roleName}</option>)}
+                <select value={String(u.roleId)} onChange={e => handleRoleChange(u.id, Number(e.target.value))} style={{ padding: 4 }}>
+                  {roles.map((r: any) => <option key={r.id} value={String(r.id)}>{r.roleName}</option>)}
                 </select>
               </td>
               <td style={{ border: '1px solid #eee', padding: 8 }}>{u.realName}</td>

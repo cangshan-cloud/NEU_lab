@@ -2,10 +2,16 @@ import React, { useState, useEffect } from 'react';
 import { register, listRoles } from '../api/user';
 import { useNavigate } from 'react-router-dom';
 import { Form, Input, Button, Typography, message, Card } from 'antd';
+import { useTrackEvent } from '../utils/request';
 
 const { Title } = Typography;
 
 const UserRegister: React.FC = () => {
+  const track = useTrackEvent();
+  useEffect(() => {
+    track('view', '/user-register');
+  }, [track]);
+  // 注册、提交等操作可用track('click', '/user-register', { buttonId: 'register' })等
   const [loading, setLoading] = useState(false);
   const [form] = Form.useForm();
   const navigate = useNavigate();

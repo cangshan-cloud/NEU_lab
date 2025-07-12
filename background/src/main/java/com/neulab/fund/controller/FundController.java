@@ -33,7 +33,8 @@ public class FundController {
      */
     @GetMapping("/all")
     public ApiResponse<List<Fund>> getAllFunds() {
-        return ApiResponse.success(fundService.getAllFunds());
+        List<Fund> funds = fundService.getAllFunds();
+        return ApiResponse.success(funds);
     }
 
     /**
@@ -41,7 +42,11 @@ public class FundController {
      */
     @GetMapping("/{id}")
     public ApiResponse<Fund> getFundById(@PathVariable Long id) {
-        return ApiResponse.success(fundService.getFundById(id));
+        Fund fund = fundService.getFundById(id);
+        if (fund == null) {
+            return ApiResponse.error("基金不存在", 1);
+        }
+        return ApiResponse.success(fund);
     }
 
     /**
@@ -86,6 +91,10 @@ public class FundController {
      */
     @PutMapping("/{id}")
     public ApiResponse<Fund> updateFund(@PathVariable Long id, @RequestBody Fund fund, @RequestParam(required = false) ArrayList<Long> tagIds) {
+        Fund existing = fundService.getFundById(id);
+        if (existing == null) {
+            return ApiResponse.error("基金不存在", 1);
+        }
         fund.setId(id);
         if (tagIds != null && !tagIds.isEmpty()) {
             fund.setTags(fundTagRepository.findAllById(tagIds));
@@ -98,8 +107,12 @@ public class FundController {
      */
     @DeleteMapping("/{id}")
     public ApiResponse<Void> deleteFund(@PathVariable Long id) {
+        Fund fund = fundService.getFundById(id);
+        if (fund == null) {
+            return ApiResponse.error("基金不存在", 1);
+        }
         fundService.deleteFund(id);
-        return ApiResponse.success(null);
+        return new ApiResponse<>(0, "删除成功", null);
     }
 
     /**
@@ -108,6 +121,9 @@ public class FundController {
     @GetMapping("/{id}/profile")
     public ApiResponse<Fund> getFundProfile(@PathVariable Long id) {
         Fund fund = fundService.getFundById(id);
+        if (fund == null) {
+            return ApiResponse.error("基金不存在", 1);
+        }
         // 可扩展聚合业绩、持仓、公告等
         return ApiResponse.success(fund);
     }

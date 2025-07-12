@@ -1,11 +1,17 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Form, Input, Button, message, Card } from 'antd';
 import { useNavigate } from 'react-router-dom';
 import { productApi } from '../../api/product';
+import { useTrackEvent } from '../../utils/request';
 
 const ProductAdd: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
+  const track = useTrackEvent();
+
+  useEffect(() => {
+    track('view', '/products/add');
+  }, [track]);
 
   const onFinish = async (values: any) => {
     setLoading(true);

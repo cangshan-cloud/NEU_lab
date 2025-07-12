@@ -2,8 +2,13 @@ import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Table, Button, Card, message, Pagination, Modal, Descriptions, Tag, Alert } from 'antd';
 import axios from 'axios';
+import { useTrackEvent } from '../../utils/request';
 
 const SingleStrategyBacktestList: React.FC = () => {
+  const track = useTrackEvent();
+  useEffect(() => {
+    track('view', '/single-strategy-backtests');
+  }, [track]);
   const { id } = useParams<{ id?: string }>();
   const navigate = useNavigate();
   const [data, setData] = useState<any[]>([]);

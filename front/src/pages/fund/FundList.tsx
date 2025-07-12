@@ -11,7 +11,8 @@ import {
   Form, 
   message,
   Popconfirm,
-  Tooltip
+  Tooltip,
+  InputNumber
 } from 'antd';
 import { 
   SearchOutlined, 
@@ -24,6 +25,8 @@ import {
 import { useNavigate } from 'react-router-dom';
 import { fundApi, fundCompanyApi, fundManagerApi, fundTagApi, fundPortfolioApi } from '../../api';
 import type { Fund, FundCompany, FundManager, QueryParams, FundTag } from '../../types';
+import { useTrackEvent } from '../../utils/request';
+import { post } from '../../utils/request';
 
 const { Search } = Input;
 const { Option, OptGroup } = Select;
@@ -53,10 +56,17 @@ const FundList: React.FC = () => {
   const [selectedTags, setSelectedTags] = useState<number[]>([]);
   const [selectedRowKeys, setSelectedRowKeys] = useState<React.Key[]>([]);
   const [portfolioModalVisible, setPortfolioModalVisible] = useState(false);
-  const [portfolioName, setPortfolioName] = useState('');
+  const [portfolioForm] = Form.useForm();
   const [styleTags, setStyleTags] = useState<FundTag[]>([]);
   const [themeTags, setThemeTags] = useState<FundTag[]>([]);
   const [sizeTags, setSizeTags] = useState<FundTag[]>([]);
+  const track = useTrackEvent();
+
+  useEffect(() => {
+    track('view', '/funds');
+  }, [track]);
+  // 新增、编辑、筛选、查看详情等操作可用track('click', '/funds', { buttonId: 'add' })等
+  // 导出、批量操作等操作可用track('click', '/funds', { buttonId: 'export' })等
 
   // 状态颜色映射
   const statusColorMap: Record<string, string> = {
@@ -177,8 +187,7 @@ const FundList: React.FC = () => {
     loadTags();
     // 临时测试：直接写死一条数据
     setFunds([
-      { id: 1, code: '001', name: '测试基金', type: 'STOCK', companyName: '测试公司', managerName: '张三' }
-    ]);
+      { id: 1, code: '001', name: '测试基金', type: 'STOCK' } as Fund ]);
     // eslint-disable-next-line
   }, []);
 
@@ -191,12 +200,14 @@ const FundList: React.FC = () => {
 
   // 处理搜索
   const handleSearch = (value: string) => {
+    track('click', '/funds', { buttonId: 'search', keyword: value });
     setSearchKeyword(value);
     setCurrent(1);
   };
 
   // 处理筛选
   const handleFilter = (type: string, value: string) => {
+    track('click', '/funds', { buttonId: 'filter', filterType: type, filterValue: value });
     switch (type) {
       case 'company':
         setSelectedCompany(value);
@@ -216,6 +227,7 @@ const FundList: React.FC = () => {
 
   // 重置筛选
   const handleReset = () => {
+    track('click', '/funds', { buttonId: 'reset' });
     setSearchKeyword('');
     setSelectedCompany('');
     setSelectedManager('');
@@ -227,6 +239,7 @@ const FundList: React.FC = () => {
 
   // 处理新增/编辑
   const handleEdit = (fund?: Fund) => {
+    track('click', '/funds', { buttonId: fund ? 'edit' : 'add', fundId: fund?.id });
     setEditingFund(fund || null);
     if (fund) {
       form.setFieldsValue({
@@ -251,14 +264,15 @@ const FundList: React.FC = () => {
 
   // 处理保存
   const handleSave = async () => {
+    track('click', '/funds', { buttonId: 'save', fundId: editingFund?.id });
     try {
       const values = await form.validateFields();
       // 字段映射，保证和后端实体类一致
       const payload = {
-        name: values.fundName,
-        code: values.fundCode,
-        type: values.fundType,
-        status: values.status, // 如果表单有 status 字段
+        fundCode: values.fundCode,
+        fundName: values.fundName,
+        fundType: values.fundType, // 如有
+        status: values.status, // 如有
         companyId: values.companyId,
         managerId: values.managerId,
         riskLevel: values.riskLevel,
@@ -266,6 +280,9 @@ const FundList: React.FC = () => {
         fundSize: values.fundSize, // 如有
         nav: values.nav, // 如有
         navDate: values.navDate, // 如有
+        investmentStrategy: values.investmentStrategy, // 如有
+        benchmark: values.benchmark, // 如有
+        tags: (values.tags || []).map((id: number) => ({ id })), // 关键修正
         // 其它字段按需补充
       };
       if (editingFund) {
@@ -286,6 +303,7 @@ const FundList: React.FC = () => {
 
   // 处理删除
   const handleDelete = async (id: number) => {
+    track('click', '/funds', { buttonId: 'delete', fundId: id });
     try {
       await fundApi.delete(id);
       message.success('删除基金成功');
@@ -296,15 +314,55 @@ const FundList: React.FC = () => {
   };
 
   // 保存为组合
-  const handleSavePortfolio = async () => {
-    await fundPortfolioApi.create({
-      portfolioName,
-      funds: selectedRowKeys.map(id => ({ id: Number(id) })) as any,
-    });
-    setPortfolioModalVisible(false);
-    setPortfolioName('');
-    setSelectedRowKeys([]);
-    message.success('保存组合成功');
+  const handleSavePortfolio = () => {
+    if (selectedRowKeys.length === 0) {
+      message.warning('请先选择要保存的基金');
+      return;
+    }
+    setPortfolioModalVisible(true);
+  };
+
+  const handlePortfolioFormOk = async () => {
+    try {
+      const values = await portfolioForm.validateFields();
+      // 1. 创建组合
+      const res = await fundPortfolioApi.create({
+        portfolioName: values.portfolioName,
+        portfolioType: values.portfolioType,
+        riskLevel: values.riskLevel,
+        targetReturn: values.targetReturn,
+        maxDrawdown: values.maxDrawdown,
+        investmentHorizon: values.investmentHorizon,
+        minInvestment: values.minInvestment,
+        description: values.description,
+      });
+      // 兼容 axios 返回结构
+      const resData = res.data || {};
+      if (resData.code !== 0) {
+        message.error(resData.message || '创建组合失败');
+        return;
+      }
+      const portfolioId = resData.data?.id;
+      if (!portfolioId) {
+        message.error('未获取到新建组合ID');
+        return;
+      }
+      // 2. 批量保存组合-基金关联
+      const relRes = await post('/fund-portfolio-relations/batch', {
+        portfolioId,
+        fundIds: selectedRowKeys.map(fundId => Number(fundId)),
+      });
+      const relResData = relRes.data || {};
+      if (relResData.code !== 0) {
+        message.error(relResData.message || '保存组合基金关联失败');
+        return;
+      }
+      message.success('保存成功');
+      setPortfolioModalVisible(false);
+      portfolioForm.resetFields();
+    } catch (e: any) {
+      message.error(e?.message || '保存失败，请重试');
+    }
   };
 
   // 选类型时
@@ -468,7 +526,7 @@ const FundList: React.FC = () => {
             <Button
               type="primary"
               disabled={selectedRowKeys.length === 0}
-              onClick={() => setPortfolioModalVisible(true)}
+              onClick={handleSavePortfolio}
             >
               保存为组合
             </Button>
@@ -503,7 +561,6 @@ const FundList: React.FC = () => {
             onChange: setSelectedRowKeys,
           }}
         />
-        {console.log('渲染时 funds:', funds)}
       </Card>
 
       {/* 新增/编辑模态框 */}
@@ -607,17 +664,40 @@ const FundList: React.FC = () => {
         </Form>
       </Modal>
 
+      {/* 新建组合表单Modal */}
       <Modal
-        title="保存为基金组合"
+        title="新建基金组合"
         open={portfolioModalVisible}
-        onOk={handleSavePortfolio}
+        onOk={handlePortfolioFormOk}
         onCancel={() => setPortfolioModalVisible(false)}
+        destroyOnClose
       >
-        <Input
-          placeholder="请输入组合名称"
-          value={portfolioName}
-          onChange={e => setPortfolioName(e.target.value)}
-        />
+        <Form form={portfolioForm} layout="vertical">
+          <Form.Item name="portfolioName" label="组合名称" rules={[{ required: true, message: '请输入组合名称' }]}>
+            <Input placeholder="请输入组合名称" />
+          </Form.Item>
+          <Form.Item name="portfolioType" label="组合类型">
+            <Input placeholder="如：自定义/指数/平衡/激进等" />
+          </Form.Item>
+          <Form.Item name="riskLevel" label="风险等级">
+            <Select options={[{ value: '高风险', label: '高风险' }, { value: '中风险', label: '中风险' }, { value: '低风险', label: '低风险' }]} allowClear />
+          </Form.Item>
+          <Form.Item name="targetReturn" label="目标收益率">
+            <InputNumber min={0} max={100} addonAfter="%" style={{ width: '100%' }} />
+          </Form.Item>
+          <Form.Item name="maxDrawdown" label="最大回撤">
+            <InputNumber min={0} max={100} addonAfter="%" style={{ width: '100%' }} />
+          </Form.Item>
+          <Form.Item name="investmentHorizon" label="投资期限">
+            <Input placeholder="如：1年/2年/3年" />
+          </Form.Item>
+          <Form.Item name="minInvestment" label="最小投资金额">
+            <InputNumber min={0} style={{ width: '100%' }} addonAfter="元" />
+          </Form.Item>
+          <Form.Item name="description" label="描述">
+            <Input.TextArea rows={2} placeholder="可选，补充说明" />
+          </Form.Item>
+        </Form>
       </Modal>
     </div>
   );

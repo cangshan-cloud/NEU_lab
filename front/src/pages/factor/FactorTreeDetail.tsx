@@ -2,12 +2,18 @@ import React, { useEffect, useState } from 'react';
 import { Card, Table, Tag, Spin, Button } from 'antd';
 import { useParams, useNavigate } from 'react-router-dom';
 import { getFactorTreeWithNodesList } from '../../api/factor';
+import { useTrackEvent } from '../../utils/request';
 
 const FactorTreeDetail: React.FC = () => {
   const { id } = useParams();
   const [tree, setTree] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
+  const track = useTrackEvent();
+
+  useEffect(() => {
+    track('view', '/factor-trees/detail');
+  }, [track]);
 
   useEffect(() => {
     const fetch = async () => {

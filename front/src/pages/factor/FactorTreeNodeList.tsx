@@ -3,6 +3,7 @@ import { Tree, Button, Modal, Form, Input, message, Popconfirm, Table, Upload } 
 import { factorTreeNodeApi, batchImportFactorTreeNodes } from '../../api/factor';
 import type { FactorTreeNode } from '../../types';
 import { getFactorTreeNodes, addFactorTreeNode, updateFactorTreeNode, deleteFactorTreeNode } from '../../api/factor';
+import { useTrackEvent } from '../../utils/request';
 
 function buildTree(nodes: FactorTreeNode[], parentId: number | null = null): any[] {
   return nodes
@@ -16,6 +17,10 @@ function buildTree(nodes: FactorTreeNode[], parentId: number | null = null): any
 }
 
 const FactorTreeNodeList: React.FC = () => {
+  const track = useTrackEvent();
+  useEffect(() => {
+    track('view', '/factor-tree-nodes');
+  }, [track]);
   const [data, setData] = useState<FactorTreeNode[]>([]);
   const [loading, setLoading] = useState(false);
   const [modalVisible, setModalVisible] = useState(false);

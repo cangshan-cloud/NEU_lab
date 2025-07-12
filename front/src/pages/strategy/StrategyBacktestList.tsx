@@ -2,8 +2,15 @@ import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Table, Button, Card, message, Pagination, Modal, Descriptions, Tag, Alert } from 'antd';
 import axios from 'axios';
+import { useTrackEvent } from '../../utils/request';
 
 const StrategyBacktestList: React.FC = () => {
+  const track = useTrackEvent();
+  useEffect(() => {
+    track('view', '/strategy-backtests');
+  }, [track]);
+  // 回测、筛选、导出、查看详情等操作可用track('click', '/strategy-backtests', { buttonId: 'backtest' })等
+  // 导出、批量操作等操作可用track('click', '/strategy-backtests', { buttonId: 'export' })等
   const { id } = useParams<{ id?: string }>();
   const navigate = useNavigate();
   const [data, setData] = useState<any[]>([]);

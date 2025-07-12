@@ -2,8 +2,14 @@ import React, { useEffect, useState } from 'react';
 import { Card, Table, message, Tag, Button, Modal, Form, Input, Popconfirm } from 'antd';
 import { fundManagerApi } from '../../api/fund';
 import type { FundManager } from '../../types';
+import { useTrackEvent } from '../../utils/request';
 
 const FundManagerList: React.FC = () => {
+  const track = useTrackEvent();
+  useEffect(() => {
+    track('view', '/fund-managers');
+  }, [track]);
+  // 新增、编辑、筛选、查看详情等操作可用track('click', '/fund-managers', { buttonId: 'add' })等
   const [data, setData] = useState<FundManager[]>([]);
   const [loading, setLoading] = useState(false);
   const [modalVisible, setModalVisible] = useState(false);

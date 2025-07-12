@@ -1,9 +1,11 @@
 import React, { useEffect, useState } from 'react';
-import { Table, Card, Select, Button, Tag, Form, Space, Modal, Input } from 'antd';
+import { Table, Card, Select, Button, Tag, Form, Space, Modal, Input, message } from 'antd';
 import { getDeliveryOrders } from '../../api/trade';
 import { getProducts } from '../../api/fund';
 import { getUserList } from '../../api/user';
 import { EyeOutlined, EditOutlined } from '@ant-design/icons';
+import { useTrackEvent } from '../../utils/request';
+import { tradeOrderApi } from '../../api/trade';
 
 // 状态映射表
 const statusMap: Record<string, string> = {
@@ -65,6 +67,11 @@ const DeliveryOrderList: React.FC = () => {
   const [modalOpen, setModalOpen] = useState(false);
   const [modalMode, setModalMode] = useState<'view' | 'edit'>('view');
   const [modalData, setModalData] = useState<any>(undefined);
+  const track = useTrackEvent();
+
+  useEffect(() => {
+    track('view', '/delivery-orders');
+  }, [track]);
 
   const fetchData = async (params?: any) => {
     setLoading(true);
@@ -91,15 +98,18 @@ const DeliveryOrderList: React.FC = () => {
   }, []);
 
   const onSearch = (values: any) => {
+    track('click', '/delivery-orders', { buttonId: 'filter', ...values });
     fetchData(values);
   };
 
   const handleView = (record: any) => {
+    track('click', '/delivery-orders', { buttonId: 'view', deliveryOrderId: record.id });
     setModalData(record);
     setModalMode('view');
     setModalOpen(true);
   };
   const handleEdit = (record: any) => {
+    track('click', '/delivery-orders', { buttonId: 'edit', deliveryOrderId: record.id });
     setModalData(record);
     setModalMode('edit');
     setModalOpen(true);
@@ -151,10 +161,16 @@ const DeliveryOrderList: React.FC = () => {
         open={modalOpen}
         mode={modalMode}
         data={modalData}
-        onOk={(values) => {
-          // TODO: 实现保存逻辑
-          setModalOpen(false);
-          fetchData();
+        onOk={async (values) => {
+          try {
+            // 假设有 tradeOrderApi.update 或 deliveryOrderApi.update
+            await tradeOrderApi.update(modalData.id, values);
+            message.success('保存成功');
+            setModalOpen(false);
+            fetchData();
+          } catch (e) {
+            message.error('保存失败');
+          }
         }}
         onCancel={() => setModalOpen(false)}
       />

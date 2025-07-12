@@ -4,8 +4,14 @@ import { createRoleChangeRequest } from '../api/roleChangeRequest';
 import { get as getRoles } from '../utils/request';
 import { Select, message as antdMsg } from 'antd';
 import { fundCompanyApi, fundManagerApi } from '../api/fund';
+import { useTrackEvent } from '../utils/request';
 
 const UserProfile: React.FC = () => {
+  const track = useTrackEvent();
+  useEffect(() => {
+    track('view', '/user-profile');
+  }, [track]);
+  // 编辑、保存、修改密码等操作可用track('click', '/user-profile', { buttonId: 'edit' })等
   const [user, setUser] = useState<any>(null);
   const [edit, setEdit] = useState(false);
   const [form, setForm] = useState({ realName: '', email: '', phone: '' });

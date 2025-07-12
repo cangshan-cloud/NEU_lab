@@ -3,6 +3,8 @@ import { Table, Button, Select, message, Modal, Tag, Form, Input, Space } from '
 import { getDeliveryOrders, handleTradeError } from '../../api/trade';
 import { getProducts } from '../../api/fund';
 import { EyeOutlined, EditOutlined } from '@ant-design/icons';
+import { useTrackEvent } from '../../utils/request';
+import { tradeOrderApi } from '../../api/trade';
 
 const TradeErrorModal: React.FC<{
   open: boolean;
@@ -58,6 +60,7 @@ const TradeErrorList: React.FC = () => {
   const [modalOpen, setModalOpen] = useState(false);
   const [modalMode, setModalMode] = useState<'view' | 'edit'>('view');
   const [modalData, setModalData] = useState<any>(undefined);
+  const track = useTrackEvent();
 
   // 状态映射表
   const statusMap: Record<string, string> = {
@@ -88,7 +91,13 @@ const TradeErrorList: React.FC = () => {
     }))));
   }, []);
 
+  useEffect(() => {
+    track('view', '/trade-errors');
+  }, [track]);
+  // 筛选、导出、查看详情等操作可用track('click', '/trade-errors', { buttonId: 'export' })等
+
   const handleReplace = async () => {
+    track('click', '/trade-errors', { buttonId: 'replace', deliveryOrderId: modal.deliveryOrderId, newProductId: selectedProduct });
     if (!modal.deliveryOrderId || !selectedProduct) return;
     try {
       await handleTradeError({ deliveryOrderId: modal.deliveryOrderId, newProductId: selectedProduct });
@@ -102,11 +111,13 @@ const TradeErrorList: React.FC = () => {
   };
 
   const handleView = (record: any) => {
+    track('click', '/trade-errors', { buttonId: 'view', deliveryOrderId: record.id });
     setModalData(record);
     setModalMode('view');
     setModalOpen(true);
   };
   const handleEdit = (record: any) => {
+    track('click', '/trade-errors', { buttonId: 'edit', deliveryOrderId: record.id });
     setModalData(record);
     setModalMode('edit');
     setModalOpen(true);
@@ -143,10 +154,16 @@ const TradeErrorList: React.FC = () => {
         open={modalOpen}
         mode={modalMode}
         data={modalData}
-        onOk={(values) => {
-          // TODO: 实现保存逻辑
-          setModalOpen(false);
-          fetchData();
+        onOk={async (values) => {
+          try {
+            // 假设有 tradeOrderApi.update 或 handleTradeError
+            await tradeOrderApi.update(modalData.id, values);
+            message.success('保存成功');
+            setModalOpen(false);
+            fetchData();
+          } catch (e) {
+            message.error('保存失败');
+          }
         }}
         onCancel={() => setModalOpen(false)}
       />

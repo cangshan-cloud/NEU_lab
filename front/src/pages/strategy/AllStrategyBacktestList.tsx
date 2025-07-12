@@ -2,9 +2,15 @@ import React, { useEffect, useState, useRef } from 'react';
 import { Table, Button, Card, message, Pagination, Modal, Descriptions, Tag, Alert } from 'antd';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
+import { useTrackEvent } from '../../utils/request';
 
 const AllStrategyBacktestList: React.FC = () => {
   const navigate = useNavigate();
+  const track = useTrackEvent();
+  useEffect(() => {
+    track('view', '/all-strategy-backtests');
+  }, [track]);
+  // 回测、筛选、导出、查看详情等操作可用track('click', '/all-strategy-backtests', { buttonId: 'backtest' })等
   const [data, setData] = useState<any[]>([]);
   const [total, setTotal] = useState(0);
   const [loading, setLoading] = useState(false);
@@ -67,7 +73,7 @@ const AllStrategyBacktestList: React.FC = () => {
       }
     },
     { title: '回测名称', dataIndex: 'backtestName' },
-    { title: '回测类型', dataIndex: 'backtestType' },
+    // 移除回测类型
     { title: '回测区间', render: (_: any, r: any) => `${r.startDate} ~ ${r.endDate}` },
     { title: '初始资金', dataIndex: 'initialCapital' },
     { title: '最终价值', dataIndex: 'finalValue' },
@@ -111,7 +117,7 @@ const AllStrategyBacktestList: React.FC = () => {
             <Descriptions.Item label="策略ID">{detail.strategyId}</Descriptions.Item>
             <Descriptions.Item label="策略名称"><b>{strategyNameMap[detail.strategyId] || '-'}</b></Descriptions.Item>
             <Descriptions.Item label="回测名称"><b>{detail.backtestName}</b></Descriptions.Item>
-            <Descriptions.Item label="回测类型">{detail.backtestType}</Descriptions.Item>
+            {/* 移除回测类型 */}
             <Descriptions.Item label="回测区间">{detail.startDate} ~ {detail.endDate}</Descriptions.Item>
             <Descriptions.Item label="初始资金">{detail.initialCapital}</Descriptions.Item>
             <Descriptions.Item label="最终价值">{detail.finalValue}</Descriptions.Item>

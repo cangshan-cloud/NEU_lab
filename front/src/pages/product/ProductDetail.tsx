@@ -4,8 +4,14 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { ArrowLeftOutlined, EditOutlined } from '@ant-design/icons';
 import { getProductById } from '../../api/product';
 import type { Product } from '../../types';
+import { useTrackEvent } from '../../utils/request';
 
 const ProductDetail: React.FC = () => {
+  const track = useTrackEvent();
+  useEffect(() => {
+    track('view', '/products/detail');
+  }, [track]);
+  // 编辑、导出、查看历史等操作可用track('click', '/products/detail', { buttonId: 'edit' })等
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);

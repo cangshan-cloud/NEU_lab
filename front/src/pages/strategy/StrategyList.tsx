@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { fetchStrategyList, deleteStrategy } from '../../api/strategy';
 import type { StrategyVO } from '../../api/strategy';
 import { Card, Table, message, Tag, Button, Input, Select, Pagination, Space, Row, Col, Form } from 'antd';
+import { useTrackEvent } from '../../utils/request';
 
 const { Option } = Select;
 
@@ -27,6 +28,11 @@ const STATUS_OPTIONS = [
 ];
 
 const StrategyList: React.FC = () => {
+  const track = useTrackEvent();
+  useEffect(() => {
+    track('view', '/strategies');
+  }, [track]);
+  // 新增、编辑、筛选、导出、查看详情、回测等操作可用track('click', '/strategies', { buttonId: 'add' })等
   const [data, setData] = useState<StrategyVO[]>([]);
   const [total, setTotal] = useState(0);
   const [loading, setLoading] = useState(false);

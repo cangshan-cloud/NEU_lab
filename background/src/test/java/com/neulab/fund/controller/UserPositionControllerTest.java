@@ -5,18 +5,23 @@ import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMock
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.web.servlet.MockMvc;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+import org.springframework.test.context.ActiveProfiles;
 
 @SpringBootTest(classes = com.example.background.BackgroundApplication.class)
 @AutoConfigureMockMvc
+@ActiveProfiles("test")
 public class UserPositionControllerTest {
     @Autowired
     private MockMvc mockMvc;
 
     @Test
-    void testGetAllUserPosition() throws Exception {
-        mockMvc.perform(get("/api/userposition/all"))
-                .andExpect(status().isOk());
+    public void testGetAllUserPosition() throws Exception {
+        mockMvc.perform(get("/api/user-positions"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.code").value(0))
+                .andExpect(jsonPath("$.message").value("success"))
+                .andExpect(jsonPath("$.data").exists());
     }
 } 

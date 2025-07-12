@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { Table, Card, Button, Space, Tag, Modal, message, Input, Popconfirm, Form, Select } from 'antd';
 import { PlusOutlined, EditOutlined, DeleteOutlined, EyeOutlined } from '@ant-design/icons';
-import { getTradeOrderList, deleteTradeOrder, batchSubmitTradeOrders, batchRejectTradeOrders } from '../../api/trade';
+import { getTradeOrderList, deleteTradeOrder, batchSubmitTradeOrders, batchRejectTradeOrders, tradeOrderApi } from '../../api/trade';
 import type { TradeOrder } from '../../types';
+import { useTrackEvent } from '../../utils/request';
 
 const { Search } = Input;
 
@@ -85,6 +86,12 @@ const TradeOrderList: React.FC = () => {
   const [modalMode, setModalMode] = useState<'view' | 'edit'>('view');
   const [modalData, setModalData] = useState<any>(undefined);
   const [activeType, setActiveType] = useState('ALL');
+  const track = useTrackEvent();
+
+  useEffect(() => {
+    track('view', '/trade-orders');
+  }, [track]);
+  // 下单、撤单、筛选、导出、查看详情等操作可用track('click', '/trade-orders', { buttonId: 'order' })等
 
   const fetchData = async () => {
     setLoading(true);
@@ -105,6 +112,7 @@ const TradeOrderList: React.FC = () => {
   }, []);
 
   const handleDelete = (id: number) => {
+    track('click', '/trades', { buttonId: 'delete', orderId: id });
     Modal.confirm({
       title: '确认删除',
       content: '确定要删除这个交易订单吗？',
@@ -123,6 +131,7 @@ const TradeOrderList: React.FC = () => {
   };
 
   const handleBatchSubmit = async () => {
+    track('click', '/trades', { buttonId: 'batchSubmit', orderIds: selectedRowKeys });
     if (selectedRowKeys.length === 0) return message.warning('请先选择交易单');
     try {
       await batchSubmitTradeOrders(selectedRowKeys as number[]);
@@ -135,6 +144,7 @@ const TradeOrderList: React.FC = () => {
   };
 
   const handleBatchReject = async () => {
+    track('click', '/trades', { buttonId: 'batchReject', orderIds: selectedRowKeys });
     if (selectedRowKeys.length === 0) return message.warning('请先选择交易单');
     try {
       await batchRejectTradeOrders(selectedRowKeys as number[]);
@@ -147,11 +157,13 @@ const TradeOrderList: React.FC = () => {
   };
 
   const handleView = (record: any) => {
+    track('click', '/trades', { buttonId: 'view', orderId: record.id });
     setModalData(record);
     setModalMode('view');
     setModalOpen(true);
   };
   const handleEdit = (record: any) => {
+    track('click', '/trades', { buttonId: 'edit', orderId: record.id });
     setModalData(record);
     setModalMode('edit');
     setModalOpen(true);
@@ -267,11 +279,13 @@ const TradeOrderList: React.FC = () => {
             删除
           </Button>
           <Popconfirm title="确定下发该单？" onConfirm={async () => {
+            track('click', '/trades', { buttonId: 'submit', orderId: record.id });
             await batchSubmitTradeOrders([record.id]);
             message.success('下发成功');
             fetchData();
           }}><Button size="small">下发</Button></Popconfirm>
           <Popconfirm title="确定驳回该单？" onConfirm={async () => {
+            track('click', '/trades', { buttonId: 'reject', orderId: record.id });
             await batchRejectTradeOrders([record.id]);
             message.success('驳回成功');
             fetchData();
@@ -318,7 +332,12 @@ const TradeOrderList: React.FC = () => {
         <Button 
           type="primary" 
           icon={<PlusOutlined />}
-          onClick={() => { setModalData(undefined); setModalMode('edit'); setModalOpen(true); }}
+          onClick={() => { 
+            track('click', '/trades', { buttonId: 'add' });
+            setModalData(undefined); 
+            setModalMode('edit'); 
+            setModalOpen(true); 
+          }}
         >
           新增订单
         </Button>
@@ -343,10 +362,15 @@ const TradeOrderList: React.FC = () => {
         open={modalOpen}
         mode={modalMode}
         data={modalData}
-        onOk={(values) => {
-          // TODO: 实现保存逻辑
-          setModalOpen(false);
-          fetchData();
+        onOk={async (values) => {
+          try {
+            await tradeOrderApi.update(modalData.id, values);
+            message.success('保存成功');
+            setModalOpen(false);
+            fetchData();
+          } catch (e) {
+            message.error('保存失败');
+          }
         }}
         onCancel={() => setModalOpen(false)}
       />

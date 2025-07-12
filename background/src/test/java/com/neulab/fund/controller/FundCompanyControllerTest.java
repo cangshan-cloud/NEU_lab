@@ -19,7 +19,7 @@ public class FundCompanyControllerTest {
 
     @Test
     void testGetAllFundCompany() throws Exception {
-        mockMvc.perform(get("/api/fundcompany/all"))
+        mockMvc.perform(get("/api/fund-companies"))
                 .andExpect(status().isOk());
     }
 

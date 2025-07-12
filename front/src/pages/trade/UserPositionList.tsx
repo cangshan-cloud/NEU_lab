@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { Table, Card, Button, Space, Tag, Modal, message, Input, Form, Select } from 'antd';
 import { PlusOutlined, EditOutlined, DeleteOutlined, EyeOutlined } from '@ant-design/icons';
-import { getUserPositionList, deleteUserPosition } from '../../api/trade';
+import { getUserPositionList, deleteUserPosition, userPositionApi } from '../../api/trade';
 import type { UserPosition } from '../../types';
+import { useTrackEvent } from '../../utils/request';
 
 const { Search } = Input;
 
@@ -54,6 +55,11 @@ const UserPositionList: React.FC = () => {
   const [modalOpen, setModalOpen] = useState(false);
   const [modalMode, setModalMode] = useState<'view' | 'edit'>('view');
   const [modalData, setModalData] = useState<any>(undefined);
+  const track = useTrackEvent();
+
+  useEffect(() => {
+    track('view', '/user-positions');
+  }, [track]);
 
   const fetchData = async () => {
     setLoading(true);
@@ -74,6 +80,7 @@ const UserPositionList: React.FC = () => {
   }, []);
 
   const handleDelete = (id: number) => {
+    track('click', '/user-positions', { buttonId: 'delete', positionId: id });
     Modal.confirm({
       title: '确认删除',
       content: '确定要删除这个用户持仓吗？',
@@ -92,11 +99,13 @@ const UserPositionList: React.FC = () => {
   };
 
   const handleView = (record: any) => {
+    track('click', '/user-positions', { buttonId: 'view', positionId: record.id });
     setModalData(record);
     setModalMode('view');
     setModalOpen(true);
   };
   const handleEdit = (record: any) => {
+    track('click', '/user-positions', { buttonId: 'edit', positionId: record.id });
     setModalData(record);
     setModalMode('edit');
     setModalOpen(true);
@@ -243,10 +252,15 @@ const UserPositionList: React.FC = () => {
         open={modalOpen}
         mode={modalMode}
         data={modalData}
-        onOk={(values) => {
-          // TODO: 实现保存逻辑
-          setModalOpen(false);
-          fetchData();
+        onOk={async (values) => {
+          try {
+            await userPositionApi.update(modalData.id, values);
+            message.success('保存成功');
+            setModalOpen(false);
+            fetchData();
+          } catch (e) {
+            message.error('保存失败');
+          }
         }}
         onCancel={() => setModalOpen(false)}
       />

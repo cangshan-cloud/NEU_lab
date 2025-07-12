@@ -1,13 +1,18 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Form, Input, Button, InputNumber, DatePicker, Card, message, Spin, Descriptions, Space } from 'antd';
 import { backtestStrategy } from '../../api/strategy';
 import type { StrategyBacktestDTO, StrategyBacktestVO } from '../../api/strategy';
 import dayjs from 'dayjs';
+import { useTrackEvent } from '../../utils/request';
 
 const { RangePicker } = DatePicker;
 
 const StrategyBacktest: React.FC = () => {
+  const track = useTrackEvent();
+  useEffect(() => {
+    track('view', '/strategy-backtest');
+  }, [track]);
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const [form] = Form.useForm<StrategyBacktestDTO>();
@@ -45,11 +50,40 @@ const StrategyBacktest: React.FC = () => {
       <Spin spinning={loading}>
         {!result ? (
           <Form form={form} layout="vertical" onFinish={onFinish} initialValues={{}}>
-            <Form.Item name="backtestName" label="回测名称" rules={[{ required: true, message: '请输入回测名称' }]}> <Input /> </Form.Item>
-            <Form.Item name="backtestType" label="回测类型" rules={[{ required: true, message: '请输入回测类型' }]}> <Input /> </Form.Item>
-            <Form.Item name="dates" label="回测区间" rules={[{ required: true, message: '请选择回测区间' }]}> <RangePicker /> </Form.Item>
-            <Form.Item name="initialCapital" label="初始资金" rules={[{ required: true, message: '请输入初始资金' }]}> <InputNumber min={0} style={{ width: '100%' }} /> </Form.Item>
-            <Form.Item name="parameters" label="参数"> <Input.TextArea rows={2} /> </Form.Item>
+            <Form.Item
+              name="backtestName"
+              label="回测名称"
+              rules={[{ required: true, message: '请输入回测名称' }]}
+            >
+              <Input placeholder="请输入回测名称" />
+            </Form.Item>
+            <Form.Item
+              name="backtestType"
+              label="回测类型"
+              rules={[{ required: true, message: '请输入回测类型' }]}
+            >
+              <Input placeholder="请输入回测类型" />
+            </Form.Item>
+            <Form.Item
+              name="dates"
+              label="回测区间"
+              rules={[{ required: true, message: '请选择回测区间' }]}
+            >
+              <RangePicker style={{ width: '100%' }} />
+            </Form.Item>
+            <Form.Item
+              name="initialCapital"
+              label="初始资金"
+              rules={[{ required: true, message: '请输入初始资金' }]}
+            >
+              <InputNumber min={0} style={{ width: '100%' }} placeholder="请输入初始资金" />
+            </Form.Item>
+            <Form.Item
+              name="parameters"
+              label="参数"
+            >
+              <Input.TextArea rows={2} placeholder="请输入参数" />
+            </Form.Item>
             <Form.Item>
               <Button type="primary" htmlType="submit">发起回测</Button>
             </Form.Item>
